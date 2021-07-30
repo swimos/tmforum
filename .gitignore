@@ -1,0 +1,32 @@
+# Ignore IDE cache
+.vscode
+
+# Ignore mac hidden file ...
+.DS_Store
+*.DS_Store
+
+# Font end style cache
+.sass-cache
+
+# Ignore all folder that name match list
+build
+out
+bin
+node_modules
+
+# Ignore dependencies
+package-lock.json
+
+# Ignore all extend match the list
+.gradle
+.idea
+.classpath
+.project
+.settings
+
+*~
+*.iml
+*.ini
+*.tar
+*.zip
+*.log
