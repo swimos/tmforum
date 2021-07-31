@@ -1,0 +1,13 @@
+{
+  info: {
+    name: "United States"
+  }
+  geometry: {
+    minZoom: 0
+    maxZoom: 7
+    minSubRegionZoom: 0
+  }
+  subRegions: {
+    {node: "/country/US/state/CA", lane: "status"}
+  }
+}

@@ -1,0 +1,83 @@
+@kernel(class: "swim.store.db.DbStoreKernel", optional: true)
+@kernel(class: "swim.cluster.ClusterKernel", optional: true)
+@kernel(class: "swim.meta.MetaKernel")
+@kernel(class: "swim.cellular.CellularUiRouter")
+
+@web(port: 9008) {
+  space: "cellular"
+  @websocket {
+    serverCompressionLevel: 0# -1 = default; 0 = off; 1-9 = deflate level
+    clientCompressionLevel: 0# -1 = default; 0 = off; 1-9 = deflate level
+  }
+}
+
+cellular: @fabric {
+  @plane(class: "swim.cellular.CellularPlane")
+
+  @mesh {
+    @part {
+      key: partA
+      predicate: @node("/site/:id") && @hash(0x00000000, 0x7fffffff)
+      @host {
+        #uri: "warp://localhost:9008"
+        primary: true
+      }
+      #@host {
+      #  uri: "warp://localhost:9009"
+      #  primary: false
+      #  replica: true
+      #}
+    }
+    @part {
+      key: partB
+      predicate: @node("/site/:id") && @hash(0x80000000, 0xffffffff)
+      #@host {
+      #  #uri: "warp://localhost:9008"
+      #  primary: false
+      #  replica: true
+      #}
+      @host {
+        uri: "warp://localhost:9009"
+        primary: true
+      }
+    }
+    @part {
+      key:
+      predicate:
+      gateway: true
+      @host {
+        primary: true
+      }
+    }
+  }
+
+  @node {
+    pattern: "/site/:id"
+    @agent(class: "swim.cellular.agent.SiteAgent")
+  }
+  @node {
+    pattern: "/site/:id/sector/:sid"
+    @agent(class: "swim.cellular.agent.SectorAgent")
+  }
+
+  @node {
+    uri: "/country/US/state/CA"
+    @agent(class: "swim.cellular.agent.RegionAgent") {
+      seed: "seed/country/US/state/CA.recon"
+    }
+    @agent(class: "swim.cellular.agent.RanAgent") {
+      seed: "seed/country/US/state/CA-ran.recon"
+    }
+  }
+
+  @node {
+    uri: "/country/US"
+    @agent(class: "swim.cellular.agent.RegionAgent") {
+      seed: "seed/country/US.recon"
+    }
+  }
+
+  #@store {
+  #  path: "/tmp/swim-cellular/"
+  #}
+}
