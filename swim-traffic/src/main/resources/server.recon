@@ -15,6 +15,11 @@ traffic: @fabric {
   @plane(class: "swim.traffic.TrafficPlane")
 
   @node {
+    pattern: "/country/US"
+    @agent(class: "swim.traffic.agent.CountryAgent")
+  }
+
+  @node {
     pattern: "/city/:id"
     @agent(class: "swim.traffic.agent.CityAgent")
   }

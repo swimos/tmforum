@@ -12,23 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package swim.traffic;
+package swim.traffic.agent;
 
-import swim.api.plane.AbstractPlane;
-import swim.api.space.Space;
-import swim.kernel.Kernel;
-import swim.server.ServerLoader;
+import swim.api.SwimLane;
+import swim.api.agent.AbstractAgent;
+import swim.api.lane.MapLane;
 import swim.structure.Value;
+import swim.uri.Uri;
 
-public class TrafficPlane extends AbstractPlane {
+public class CountryAgent extends AbstractAgent {
 
 
-  public static void main(String[] args) {
-    final Kernel kernel = ServerLoader.loadServer();
-    final Space space = kernel.getSpace("traffic");
+  @SwimLane("cities")
+  public MapLane<Uri, Uri> cities = this.<Uri, Uri>mapLane().didUpdate((key, newValue, oldValue) -> {
+    command("/city/PaloAlto_CA_US", "wake", Value.absent());
+  });
 
-    kernel.start();
-    System.out.println("Running TrafficPlane ...");
-    kernel.run(); // blocks until termination
+  public void didStart() {
+    System.out.println(nodeUri() + " didStart");
+    this.cities.put(Uri.parse("/city/PaloAlto_CA_US"), Uri.parse("/city/PaloAlto_CA_US"));
   }
+
+
 }
