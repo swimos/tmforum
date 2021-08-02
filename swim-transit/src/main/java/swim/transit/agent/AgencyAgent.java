@@ -52,6 +52,7 @@ public class AgencyAgent extends AbstractAgent {
   public ValueLane<BoundingBox> boundingBox;
 
   private void onVehicles(Vehicles newVehicles) {
+    System.out.println(nodeUri().toString() + "- vehicles size " + newVehicles.getVehicles().size());
     if (newVehicles == null || newVehicles.getVehicles().size() == 0) {
       return;
     }

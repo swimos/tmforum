@@ -40,7 +40,7 @@ $ ./gradlew run
 - [gradle](gradle) — support files for the `gradlew` build script
 
 
-### Transit Server-Side Walkthrough
+## Transit Server-Side Walkthrough
 
 Four different high-level concepts are fundamental to this application: vehicles, agencies, states, and countries.
 
