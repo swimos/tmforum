@@ -1,6 +1,6 @@
-# Swim Cellular Network Simulator
+# Swim traffic
 
-A real-time streaming cellular network application that processes performance data from celltowers
+A real-time streaming traffic application that processes sensor data from connected traffic intersections.
 
 ## Getting Started
 
@@ -22,7 +22,6 @@ $ gradlew.bat run
 ```bash
 $ ./gradlew run
 ```
-
 
 ## Repository Structure
 
