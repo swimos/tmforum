@@ -7,6 +7,12 @@
 
   const GEOMETRY_URI = swim.Uri.parse("geometry");
 
+  const KPIS_URI = swim.Uri.parse("kpis");
+
+  const INFO_URI = swim.Uri.parse("info");
+
+  const RAN_HISTORY_URI = swim.Uri.parse("ranHistory");
+
   const MIN_SITE_ZOOM = 8;
 
   const cellTowerIcon = swim.VectorIcon.create(24, 24, "M15.4,14.1L15.4,14.1L15.4,14.1L12.7,4L11.3,4L8.6,14.1L7,20L9.1,20L12,17.3L14.9,20L17,20L15.4,14.1ZM9.9,15.3L10.9,16.3L9.1,18.1L9.9,15.3ZM14.2,15.3L14.9,18.1L13.1,16.3L14.2,15.3ZM10.3,13.7L11,10.9L13,10.9L13.8,13.7L12,15.3L10.3,13.7Z");
@@ -14,6 +20,134 @@
 
   const subscriberIcon = swim.VectorIcon.create(24, 24, "M15,4C16.1,4,17,4.9,17,6L17,18C17,19.1,16.1,20,15,20L9,20C7.9,20,7,19.1,7,18L7,6C7,4.9,7.9,4,9,4L15,4ZM12,17.5C11.4,17.5,11,17.9,11,18.5C11,19.1,11.4,19.5,12,19.5C12.6,19.5,13,19.1,13,18.5C13,17.9,12.6,17.5,12,17.5ZM15,7L9,7L9,17L15,17L15,7ZM13.5,5L10.5,5C10.2,5,10,5.2,10,5.5C10,5.7,10.2,5.9,10.4,6L10.5,6L13.5,6C13.8,6,14,5.8,14,5.5C14,5.3,13.8,5.1,13.6,5L13.5,5Z");
   const subscriberIconSize = 24;
+
+
+  class CellularSiteRanHistoryDownlink extends swim.MapDownlinkTrait {
+    constructor(sinrModel, rrcModel, nodeUri, laneUri) {
+      super();
+      this.sinrModel = sinrModel;
+      this.rrcModel = rrcModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+    downlinkDidUpdate(key, value) {
+      const t = key.numberValue(void 0);
+      const sinr = value.get("mean_ul_sinr").numberValue(void 0);
+      const rrc = value.get("rrc_re_establishment_failures").numberValue(void 0);
+      if (t !== void 0 && sinr !== void 0) {
+        const dataPointModel = new swim.CompoundModel();
+        const dataPointTrait = new swim.DataPointTrait();
+        dataPointTrait.setX(new swim.DateTime(t));
+        dataPointTrait.setY(sinr);
+        dataPointModel.setTrait("dataPoint", dataPointTrait);
+        this.sinrModel.appendChildModel(dataPointModel, "" + t);
+      }
+      if (t !== void 0 && sinr !== void 0) {
+        const dataPointModel = new swim.CompoundModel();
+        const dataPointTrait = new swim.DataPointTrait();
+        dataPointTrait.setX(new swim.DateTime(t));
+        dataPointTrait.setY(rrc);
+        dataPointModel.setTrait("dataPoint", dataPointTrait);
+        this.rrcModel.appendChildModel(dataPointModel, "" + t);
+      }
+    }
+  }
+
+  class CellularSiteKpisDownlink extends swim.ValueDownlinkTrait {
+    constructor(tableModel, nodeUri, laneUri) {
+      super();
+      this.tableModel = tableModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+    downlinkDidSet(value) {
+      value.forEach((item) => {
+        const key = item.key.stringValue(void 0);
+        if (key !== void 0) {
+          let displayKey = key;
+          if (key === "avg_mean_ul_sinr") {
+            displayKey = "Avg Mean Sinr"
+          } else if (key == "sum_rrc_re_establishment_failures") {
+            displayKey = "Sum Reconnect Failures"
+          }
+          const rowModel = this.getOrCreateRowModel(displayKey);
+          const valueCell = rowModel.getTrait("value");
+          const value = item.toValue().stringValue("");
+          valueCell.setContent(value);
+        }
+      });
+    }
+    updateRowModel(key, value) {
+      const rowModel = this.getOrCreateRowModel(key, value);
+      const valueCell = rowModel.getTrait("value");
+      valueCell.setContent(value);
+      return rowModel;
+    }
+    getOrCreateRowModel(key, value) {
+      let rowModel = this.tableModel.getChildModel(key);
+      if (rowModel === null) {
+        rowModel = this.createRowModel(key);
+        this.appendChildModel(rowModel, key);
+      }
+      return rowModel;
+    }
+    createRowModel(key) {
+      const rowModel = new swim.CompoundModel();
+      const rowTrait = new swim.RowTrait();
+      const keyCell = new swim.CellTrait();
+      keyCell.setContent(key);
+      const valueCell = new swim.CellTrait();
+      rowModel.setTrait("row", rowTrait);
+      rowModel.setTrait("key", keyCell);
+      rowModel.setTrait("value", valueCell);
+      rowModel.setTrait("status", new swim.StatusTrait());
+      return rowModel;
+    }
+  }
+
+class CellularSiteInfoDownlink extends swim.ValueDownlinkTrait {
+    constructor(tableModel, nodeUri, laneUri) {
+      super();
+      this.tableModel = tableModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+    downlinkDidSet(value) {
+      value.forEach((item) => {
+        const key = item.key.stringValue(void 0);
+        if (key !== void 0 & key !== "coordinates") {
+          let displayKey = key;
+          const rowModel = this.getOrCreateRowModel(displayKey);
+          const valueCell = rowModel.getTrait("value");
+          const value = item.toValue().stringValue("");
+          valueCell.setContent(value);
+        }
+      });
+    }
+    updateRowModel(key, value) {
+      const rowModel = this.getOrCreateRowModel(key, value);
+      const valueCell = rowModel.getTrait("value");
+      valueCell.setContent(value);
+      return rowModel;
+    }
+    getOrCreateRowModel(key, value) {
+      let rowModel = this.tableModel.getChildModel(key);
+      if (rowModel === null) {
+        rowModel = this.createRowModel(key);
+        this.appendChildModel(rowModel, key);
+      }
+      return rowModel;
+    }
+    createRowModel(key) {
+      const rowModel = new swim.CompoundModel();
+      const rowTrait = new swim.RowTrait();
+      const keyCell = new swim.CellTrait();
+      keyCell.setContent(key);
+      const valueCell = new swim.CellTrait();
+      rowModel.setTrait("row", rowTrait);
+      rowModel.setTrait("key", keyCell);
+      rowModel.setTrait("value", valueCell);
+      rowModel.setTrait("status", new swim.StatusTrait());
+      return rowModel;
+    }
+  }
 
   class CellularSiteGroup extends swim.DownlinkNodeGroup {
     constructor(nodeUri, laneUri, metaHostUri) {
@@ -30,6 +164,19 @@
 
       const locationTrait = new swim.LocationTrait();
       nodeModel.setTrait("location", locationTrait);
+
+      const widgetGroup = new swim.WidgetGroup();
+      entityTrait.setTrait("widgets", widgetGroup);
+
+      const kpiWidget = this.createKpiWidget(entityTrait);
+      entityTrait.appendChildModel(kpiWidget, "kpi");
+
+      const ranHistoryWidget = this.createRanHistoryWidget(entityTrait);
+      entityTrait.appendChildModel(ranHistoryWidget, "ranHistory");
+
+      const infoWidget = this.createInfoWidget(entityTrait);
+      entityTrait.appendChildModel(infoWidget, "info");
+
     }
     updateNodeModel(nodeModel, value) {
       const entityTrait = nodeModel.getTrait(swim.EntityTrait);
@@ -54,15 +201,144 @@
         locationTrait.setGeographic(null);
       }
 
+      const ranHistoryWidget = entityTrait.getChildModel("ranHistory");
+      const ranHistoryModel = ranHistoryWidget.getChildModel("ranHistory");
+
+      const sinrPlotModel = ranHistoryModel.getChildModel("sinr");
+      const sinrStatusTrait = sinrPlotModel.getTrait(swim.StatusTrait);
+
+      const rccPlotModel = ranHistoryModel.getChildModel("rrc");
+      const rrcStatusTrait = rccPlotModel.getTrait(swim.StatusTrait);
+
       const statusTrait = nodeModel.getTrait(swim.StatusTrait);
       const severity = value.get("severity").numberValue(0);
       if (severity > 1) {
         statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.alert, severity - 1])));
+        sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.alert, severity - 1])));
+        rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.alert, severity - 1])));
       } else if (severity > 0) {
         statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, severity])));
+        sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, severity])));
+        rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, severity])));
       } else {
         statusTrait.setStatusFactor("site", null);
+        sinrStatusTrait.setStatusFactor("site", null);
+        rrcStatusTrait.setStatusFactor("site", null);
       }
+    }
+    createKpiWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+      widgetTrait.setTitle("KPIs");
+
+      const tableModel = this.createKpiTable(entityTrait);
+      widgetModel.appendChildModel(tableModel, "table");
+
+      return widgetModel;
+    }
+    createKpiTable(entityTrait) {
+      const tableModel = new swim.CompoundModel();
+      const tableTrait = new swim.TableTrait();
+      tableTrait.setColSpacing(swim.Length.px(12));
+      tableModel.setTrait("table", tableTrait);
+
+      const keyColModel = new swim.CompoundModel();
+      const keyColTrait = new swim.ColTrait();
+      keyColModel.setTrait("col", keyColTrait);
+      keyColTrait.setLayout({key: "key", grow: 2, textColor: swim.Look.mutedColor});
+      tableModel.appendChildModel(keyColModel);
+
+      const valueColModel = new swim.CompoundModel();
+      const valueColTrait = new swim.ColTrait();
+      valueColModel.setTrait("col", valueColTrait);
+      valueColTrait.setLayout({key: "value", grow: 1});
+      tableModel.appendChildModel(valueColModel);
+
+      const downlinkTrait = new CellularSiteKpisDownlink(tableModel, entityTrait.uri, KPIS_URI);
+      downlinkTrait.driver.setTrait(tableTrait);
+      tableModel.setTrait("downlink", downlinkTrait);
+
+      return tableModel;
+    }
+    createRanHistoryWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setTitle("RAN History");
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+
+      const ranHistoryModel = this.createRanHistoryGadget(entityTrait);
+      widgetModel.appendChildModel(ranHistoryModel, "ranHistory");
+      return widgetModel;
+    }
+    createRanHistoryGadget(entityTrait) {
+      const sinrModel = new swim.CompoundModel();
+      const sinrPlotTrait = new swim.LinePlotTrait();
+      sinrModel.setTrait("plot", sinrPlotTrait);
+      const sinrPlotStatus = new swim.StatusTrait();
+      sinrModel.setTrait("status", sinrPlotStatus);
+      const sinrDataSetTrait = new swim.DataSetTrait();
+      sinrModel.setTrait("dataSet", sinrDataSetTrait);
+
+      const rrcFailureModel = new swim.CompoundModel();
+      const rrcPlotTrait = new swim.LinePlotTrait();
+      rrcFailureModel.setTrait("plot", rrcPlotTrait);
+      const rrcPlotStatus = new swim.StatusTrait();
+      rrcFailureModel.setTrait("status", rrcPlotStatus);
+      const rrcDataSetTrait = new swim.DataSetTrait();
+      rrcFailureModel.setTrait("dataSet", rrcDataSetTrait);
+
+      const chartModel = new swim.CompoundModel();
+      const chartTrait = new swim.ChartTrait();
+      chartModel.setTrait("chart", chartTrait);
+      const graphTrait = new swim.GraphTrait();
+      chartModel.setTrait("graph", graphTrait);
+      chartModel.appendChildModel(sinrModel, "sinr");
+      chartModel.appendChildModel(rrcFailureModel, "rrc");
+
+      const downlinkTrait = new CellularSiteRanHistoryDownlink(sinrModel, rrcFailureModel, entityTrait.uri, RAN_HISTORY_URI);
+      downlinkTrait.driver.setTrait(chartTrait);
+      chartModel.setTrait("downlink", downlinkTrait);
+
+      return chartModel;
+    }
+    createInfoWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+      widgetTrait.setTitle("Info");
+
+      const tableModel = this.createInfoTable(entityTrait);
+      widgetModel.appendChildModel(tableModel, "table");
+
+      return widgetModel;
+    }
+    createInfoTable(entityTrait) {
+      const tableModel = new swim.CompoundModel();
+      const tableTrait = new swim.TableTrait();
+      tableTrait.setColSpacing(swim.Length.px(12));
+      tableModel.setTrait("table", tableTrait);
+
+      const keyColModel = new swim.CompoundModel();
+      const keyColTrait = new swim.ColTrait();
+      keyColModel.setTrait("col", keyColTrait);
+      keyColTrait.setLayout({key: "key", grow: 1, textColor: swim.Look.mutedColor});
+      tableModel.appendChildModel(keyColModel);
+
+      const valueColModel = new swim.CompoundModel();
+      const valueColTrait = new swim.ColTrait();
+      valueColModel.setTrait("col", valueColTrait);
+      valueColTrait.setLayout({key: "value", grow: 2});
+      tableModel.appendChildModel(valueColModel);
+
+      const downlinkTrait = new CellularSiteInfoDownlink(tableModel, entityTrait.uri, INFO_URI);
+      downlinkTrait.driver.setTrait(tableTrait);
+      tableModel.setTrait("downlink", downlinkTrait);
+
+      return tableModel;
     }
     onStopConsuming() {
       super.onStopConsuming();
@@ -205,23 +481,6 @@
         mapModel.setTrait("indicated", new swim.IndicatedTrait());
         entityModel.subentities.model.prependChildModel(mapModel);
 
-        const backhaulModel = new swim.CompoundModel();
-        const backhaulEntity = new swim.EntityTrait(swim.Uri.parse("/backhaul"));
-        backhaulModel.setTrait("entity", backhaulEntity);
-        backhaulEntity.setTitle("Backhaul");
-        backhaulEntity.subentities.injectModel();
-        backhaulModel.setTrait("status", new swim.StatusTrait());
-        backhaulModel.setTrait("indicated", new swim.IndicatedTrait());
-        entityModel.subentities.model.prependChildModel(backhaulModel);
-
-        const aggregationPoints = new swim.CompoundModel();
-        const aggregationPointsEntity = new swim.EntityTrait(swim.Uri.parse("/backhaul/aggregation"));
-        aggregationPoints.setTrait("entity", aggregationPointsEntity);
-        aggregationPointsEntity.setTitle("Aggregation Points");
-        aggregationPointsEntity.subentities.injectModel();
-        aggregationPoints.setTrait("status", new swim.StatusTrait());
-        aggregationPoints.setTrait("indicated", new swim.IndicatedTrait());
-        backhaulEntity.subentities.model.appendChildModel(aggregationPoints);
       }
     }
   }
