@@ -5,6 +5,10 @@
 
   const SITES_URI = swim.Uri.parse("sites");
 
+  const STATUS_URI = swim.Uri.parse("status");
+
+  const ALERTS_URI = swim.Uri.parse("alerts");
+
   const GEOMETRY_URI = swim.Uri.parse("geometry");
 
   const KPIS_URI = swim.Uri.parse("kpis");
@@ -76,7 +80,13 @@
       });
     }
     updateRowModel(key, value) {
-      const rowModel = this.getOrCreateRowModel(key, value);
+      let displayKey = key;
+      if (key === "avg_mean_ul_sinr") {
+        displayKey = "Avg Mean Sinr"
+      } else if (key == "sum_rrc_re_establishment_failures") {
+        displayKey = "Sum Reconnect Failures"
+      }
+      const rowModel = this.getOrCreateRowModel(displayKey, value);
       const valueCell = rowModel.getTrait("value");
       valueCell.setContent(value);
       return rowModel;
@@ -103,7 +113,7 @@
     }
   }
 
-class CellularSiteInfoDownlink extends swim.ValueDownlinkTrait {
+  class CellularSiteInfoDownlink extends swim.ValueDownlinkTrait {
     constructor(tableModel, nodeUri, laneUri) {
       super();
       this.tableModel = tableModel;
@@ -392,6 +402,98 @@ class CellularSiteInfoDownlink extends swim.ValueDownlinkTrait {
     }
   }
 
+  class CellularStateStatusDownlink extends swim.ValueDownlinkTrait {
+    constructor(tableModel, nodeUri, laneUri) {
+      super();
+      this.tableModel = tableModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+    downlinkDidSet(value) {
+      value.forEach((item) => {
+        const key = item.key.stringValue(void 0);
+        if (key !== void 0) {
+          const rowModel = this.getOrCreateRowModel(key);
+          const valueCell = rowModel.getTrait("value");
+          const value = item.toValue().stringValue("");
+          valueCell.setContent(value);
+        }
+      });
+    }
+    updateRowModel(key, value) {
+      const rowModel = this.getOrCreateRowModel(key, value);
+      const valueCell = rowModel.getTrait("value");
+      valueCell.setContent(value);
+      return rowModel;
+    }
+    getOrCreateRowModel(key, value) {
+      let rowModel = this.tableModel.getChildModel(key);
+      if (rowModel === null) {
+        rowModel = this.createRowModel(key);
+        this.appendChildModel(rowModel, key);
+      }
+      return rowModel;
+    }
+    createRowModel(key) {
+      const rowModel = new swim.CompoundModel();
+      const rowTrait = new swim.RowTrait();
+      const keyCell = new swim.CellTrait();
+      keyCell.setContent(key);
+      const valueCell = new swim.CellTrait();
+      rowModel.setTrait("row", rowTrait);
+      rowModel.setTrait("key", keyCell);
+      rowModel.setTrait("value", valueCell);
+      rowModel.setTrait("status", new swim.StatusTrait());
+      return rowModel;
+    }
+  }
+
+  class CellularStateAlertsDownlink extends swim.MapDownlinkTrait {
+
+    constructor(tableModel, nodeUri, laneUri) {
+      super();
+      this.tableModel = tableModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+    downlinkDidUpdate(key, value) {
+      if (key !== void 0) {
+        const rowModel = this.getOrCreateRowModel(key.stringValue());
+        const valueCell = rowModel.getTrait("value");
+        valueCell.setContent(value.get("severity").numberValue().toFixed(2));
+      }
+    }
+    downlinkDidRemove(key, value) {
+      if (key !== void 0) {
+        this.tableModel.removeChildModel(key.stringValue());
+      }
+    }
+    updateRowModel(key, value) {
+      const rowModel = this.getOrCreateRowModel(key.stringValue());
+      const valueCell = rowModel.getTrait("value");
+      valueCell.setContent(value.get("severity").numberValue().toFixed(2));
+      return rowModel;
+    }
+    getOrCreateRowModel(key) {
+      let rowModel = this.tableModel.getChildModel(key);
+      if (rowModel === null) {
+        rowModel = this.createRowModel(key);
+        this.appendChildModel(rowModel, key);
+      }
+      return rowModel;
+    }
+    createRowModel(key) {
+      const rowModel = new swim.CompoundModel();
+      const rowTrait = new swim.RowTrait();
+      const keyCell = new swim.CellTrait();
+      keyCell.setContent("aaa");
+      const valueCell = new swim.CellTrait();
+      rowModel.setTrait("row", rowTrait);
+      rowModel.setTrait("key", keyCell);
+      rowModel.setTrait("value", valueCell);
+      rowModel.setTrait("status", new swim.StatusTrait());
+      return rowModel;
+    }
+  }
+
   class CellularStateGroup extends swim.DownlinkNodeGroup {
     constructor(nodeUri, laneUri, metaHostUri) {
       super(metaHostUri);
@@ -420,10 +522,21 @@ class CellularSiteInfoDownlink extends swim.ValueDownlinkTrait {
       nodeModel.setChildModel("subdistricts", subdistricts);
       entityTrait.subentities.child = false;
       entityTrait.subentities.setModel(subdistricts);
+
+      const widgetGroup = new swim.WidgetGroup();
+      entityTrait.setTrait("widgets", widgetGroup);
+
+      const statusWidget = this.createStatusWidget(entityTrait);
+      entityTrait.appendChildModel(statusWidget, "status");
+
+      //TODO- Uncomment when the alerts table is fixed
+      //const alertsWidget = this.createAlertsWidget(entityTrait);
+      //entityTrait.appendChildModel(alertsWidget, "alertsWidget");
     }
     updateNodeModel(nodeModel, value) {
-      //const entityTrait = nodeModel.getTrait(swim.EntityTrait);
-      //console.log("CellularStateGroup.updateNodeModel " + entityTrait.uri + ":", value.toAny());
+      const entityTrait = nodeModel.getTrait(swim.EntityTrait);
+
+      const statusWidget = entityTrait.getChildModel("status");
 
       const statusTrait = nodeModel.getTrait(swim.StatusTrait);
       const siteCount = value.get("siteCount").numberValue(0);
@@ -440,6 +553,74 @@ class CellularSiteInfoDownlink extends swim.ValueDownlinkTrait {
       } else {
         statusTrait.setStatusFactor("region", null);
       }
+    }
+    createStatusWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+      widgetTrait.setTitle("Status");
+
+      const tableModel = this.createStatusTable(entityTrait);
+      widgetModel.appendChildModel(tableModel, "table");
+
+      return widgetModel;
+    }
+    createStatusTable(entityTrait) {
+      const tableModel = new swim.CompoundModel();
+      const tableTrait = new swim.TableTrait();
+      tableTrait.setColSpacing(swim.Length.px(12));
+      tableModel.setTrait("table", tableTrait);
+
+      const keyColModel = new swim.CompoundModel();
+      const keyColTrait = new swim.ColTrait();
+      keyColModel.setTrait("col", keyColTrait);
+      keyColTrait.setLayout({key: "key", grow: 1, textColor: swim.Look.mutedColor});
+      tableModel.appendChildModel(keyColModel);
+
+      const valueColModel = new swim.CompoundModel();
+      const valueColTrait = new swim.ColTrait();
+      valueColModel.setTrait("col", valueColTrait);
+      valueColTrait.setLayout({key: "value", grow: 1});
+      tableModel.appendChildModel(valueColModel);
+
+      const downlinkTrait = new CellularStateStatusDownlink(tableModel, entityTrait.uri, STATUS_URI);
+      downlinkTrait.driver.setTrait(tableTrait);
+      tableModel.setTrait("downlink", downlinkTrait);
+
+      return tableModel;
+    }
+    createAlertsWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setTitle("Key Events");
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+
+      const tableModel = this.createAlertsTable(entityTrait);
+      widgetModel.appendChildModel(tableModel, "table");
+
+      return widgetModel;
+    }
+    createAlertsTable(entityTrait) {
+      const tableModel = new swim.CompoundModel();
+      const tableTrait = new swim.TableTrait();
+      tableTrait.setColSpacing(swim.Length.px(12));
+      tableModel.setTrait("table", tableTrait);
+
+      const keyColTrait = new swim.ColTrait();
+      tableModel.setTrait("keyCol", keyColTrait);
+      keyColTrait.setLayout({key: "keyCol", grow: 1, textColor: swim.Look.accentColor});
+
+      const valColTrait = new swim.ColTrait();
+      tableModel.setTrait("valCol", valColTrait);
+      valColTrait.setLayout({key: "valCol", grow:1, textColor: swim.Look.mutedColor});
+
+      const downlinkTrait = new CellularStateAlertsDownlink(tableModel, entityTrait.uri, ALERTS_URI);
+      downlinkTrait.driver.setTrait(tableTrait);
+      tableModel.setTrait("downlink", downlinkTrait);
+
+      return tableModel;
     }
     onStopConsuming() {
       super.onStopConsuming();
