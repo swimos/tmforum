@@ -11,6 +11,8 @@
 
   const SCHEMATIC_URI = swim.Uri.parse("intersection/schematic");
 
+  const INTERSECTION_HISTORY_URI = swim.Uri.parse("intersection/history");
+
   const PHASE_STATE_URI = swim.Uri.parse("phase/state");
 
   const DETECTOR_STATE_URI = swim.Uri.parse("detector/state");
@@ -137,12 +139,36 @@
     }
   }
 
-  class TrafficIntersectionPhaseStateDownlink extends swim.MapDownlinkTrait {
-    constructor(schematic, plot0Model, plot1Model, nodeUri, laneUri) {
+  class TrafficIntersectionHistoryDownlink extends swim.MapDownlinkTrait {
+    constructor(plot0Model, plot1Model, nodeUri, laneUri) {
       super();
-      this.schematic = schematic;
       this.plot0Model = plot0Model;
       this.plot1Model = plot1Model;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+
+    downlinkDidUpdate(key, value) {
+      const t = key.numberValue();
+      const phase0 = value.get("signalPhases").get(0).get('red').numberValue() || 0;
+      const phase1 = value.get("signalPhases").get(1).get('red').numberValue() || 0;
+      this.updatePlot(t, phase0, this.plot0Model);
+      this.updatePlot(t, phase1, this.plot1Model);
+    }
+
+    updatePlot(t, v, plotModel) {
+      const dataPointModel = new swim.CompoundModel();
+      const dataPointTrait = new swim.DataPointTrait();
+      dataPointTrait.setX(new swim.DateTime(t));
+      dataPointTrait.setY(v);
+      dataPointModel.setTrait("dataPoint", dataPointTrait);
+      plotModel.appendChildModel(dataPointModel, "" + t);
+    }
+  }
+
+  class TrafficIntersectionPhaseStateDownlink extends swim.MapDownlinkTrait {
+    constructor(schematic, nodeUri, laneUri) {
+      super();
+      this.schematic = schematic;
       this.downlink.nodeUri(nodeUri).laneUri(laneUri);
     }
     downlinkDidUpdate(key, value) {
@@ -156,24 +182,6 @@
           approachModel.phase = phase;
           this.schematic.updateApproachModel(approachModel);
         }
-      }
-
-      const dataPointModel = new swim.CompoundModel();
-      const dataPointTrait = new swim.DataPointTrait();
-      const t = new Date().getTime();
-      dataPointTrait.setX(new swim.DateTime(t));
-      let phasePlotValue = 0;
-      if (phase === 2 || phase == 3) {
-        phasePlotValue = 1;
-      }
-      dataPointTrait.setY(phasePlotValue  );
-      dataPointModel.setTrait("dataPoint", dataPointTrait);
-
-      if (phaseId === "0") {
-        this.plot0Model.appendChildModel(dataPointModel, "" + t);
-      }
-      if (phaseId === "1") {
-        this.plot1Model.appendChildModel(dataPointModel, "" + t);
       }
     }
   }
@@ -300,6 +308,10 @@
       schematicDownlinkTrait.driver.setTrait(districtTrait);
       nodeModel.setTrait("schematicDownlink", schematicDownlinkTrait);
 
+      const phaseStateDownlink = new TrafficIntersectionPhaseStateDownlink(schematicDownlinkTrait, entityTrait.uri, PHASE_STATE_URI);
+      phaseStateDownlink.driver.setTrait(districtTrait);
+      nodeModel.setTrait("phaseStateDownlink", phaseStateDownlink);
+
       const detectorStateDownlink = new TrafficIntersectionDetectorStateDownlink(schematicDownlinkTrait, entityTrait.uri, DETECTOR_STATE_URI);
       detectorStateDownlink.driver.setTrait(districtTrait);
       nodeModel.setTrait("detectorStateDownlink", detectorStateDownlink);
@@ -310,12 +322,13 @@
       const phaseWidget = this.createPhaseWidget(entityTrait);
       entityTrait.appendChildModel(phaseWidget, "phase");
 
-      const plot0Model = phaseWidget.getChildModel("phase0").getChildModel("phase0");
+      const chart0Model = phaseWidget.getChildModel("phase0");
+      const plot0Model = chart0Model.getChildModel("phase0");
       const plot1Model = phaseWidget.getChildModel("phase1").getChildModel("phase1");
 
-      const phaseStateDownlink = new TrafficIntersectionPhaseStateDownlink(schematicDownlinkTrait, plot0Model, plot1Model, entityTrait.uri, PHASE_STATE_URI);
-      phaseStateDownlink.driver.setTrait(districtTrait);
-      nodeModel.setTrait("phaseStateDownlink", phaseStateDownlink);
+      const intersectionHistoryDownlink = new TrafficIntersectionHistoryDownlink(plot0Model, plot1Model, entityTrait.uri, INTERSECTION_HISTORY_URI);
+      intersectionHistoryDownlink.driver.setTrait(chart0Model.getTrait("chart"));
+      chart0Model.setTrait("downlink", intersectionHistoryDownlink);
 
       const infoWidget = this.createInfoWidget(entityTrait);
       entityTrait.appendChildModel(infoWidget, "info");
