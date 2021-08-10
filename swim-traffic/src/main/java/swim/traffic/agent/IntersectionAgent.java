@@ -33,6 +33,8 @@ import swim.traffic.model.VehicleDetectorEvent;
 import swim.traffic.model.VehicleDetectorTensor;
 import swim.uri.Uri;
 
+import java.util.Set;
+
 public class IntersectionAgent extends AbstractAgent {
   long lastScanTime;
   TimerRef sampleTimer;
@@ -276,8 +278,51 @@ public class IntersectionAgent extends AbstractAgent {
       if (!this.mode.get().get("coord").stringValue("").equals(coord)) {
         this.mode.set(Record.create(1).slot("coord", coord));
       }
+      updateState();
       lastScanTime = System.currentTimeMillis();
     }
+  }
+
+  @SwimLane("intersection/state")
+  public ValueLane<Value> state;
+
+  private void updateState() {
+    final Set<Integer> phaseIds = signalPhaseState.keySet();
+    int redWaiting = 0, redClear = 0, greenClear = 0, greenFlowing = 0, pedWaiting = 0, pedClear = 0;
+    for (Integer phaseId: phaseIds) {
+      final Integer value = signalPhaseState.get(phaseId);
+      if (value.intValue() == 1) {
+        if (vehicleDetectorState.get(phaseId).intValue() == 1) {
+          redWaiting += 1;
+        } else if (vehicleDetectorState.get(phaseId).intValue() == 0) {
+          redClear += 1;
+        }
+      }
+      if (value.intValue() == 3) {
+        if (vehicleDetectorState.get(phaseId).intValue() == 1) {
+          greenFlowing += 1;
+        } else if (vehicleDetectorState.get(phaseId).intValue() == 0) {
+          greenClear += 1;
+        }
+      }
+    }
+
+    final Set<Integer> pedPhaseIds = pedPhaseState.keySet();
+    for (Integer pedPhaseId: pedPhaseIds) {
+      final Integer value = pedPhaseState.get(pedPhaseId);
+      if (value.intValue() == 1 || value.intValue() == 2) {
+        if (pedCallState.get(pedPhaseId).intValue() == 1) {
+          pedWaiting += 1;
+        } else if (pedCallState.get(pedPhaseId).intValue() == 0) {
+          pedClear += 1;
+        }
+      }
+    }
+    final Record stateValue = Record.create(6)
+        .slot("redWaiting", redWaiting).slot("redClear", redClear)
+        .slot("greenFlowing", greenFlowing).slot("greenClear", greenClear)
+        .slot("pedWaiting", pedWaiting).slot("pedClear", pedClear);
+    state.set(stateValue);
   }
 
   static final HashTrieSet<Uri> ENABLED = HashTrieSet.of(Uri.parse("/intersection/US/CA/PaloAlto/24"));

@@ -5,6 +5,8 @@
 
   const INTERSECTIONS_URI = swim.Uri.parse("intersections");
 
+  const CITY_STATE_URI = swim.Uri.parse("state");
+
   const INFO_URI = swim.Uri.parse("intersection/info");
 
   const SCHEMATIC_URI = swim.Uri.parse("intersection/schematic");
@@ -136,9 +138,11 @@
   }
 
   class TrafficIntersectionPhaseStateDownlink extends swim.MapDownlinkTrait {
-    constructor(schematic, nodeUri, laneUri) {
+    constructor(schematic, plot0Model, plot1Model, nodeUri, laneUri) {
       super();
       this.schematic = schematic;
+      this.plot0Model = plot0Model;
+      this.plot1Model = plot1Model;
       this.downlink.nodeUri(nodeUri).laneUri(laneUri);
     }
     downlinkDidUpdate(key, value) {
@@ -152,6 +156,24 @@
           approachModel.phase = phase;
           this.schematic.updateApproachModel(approachModel);
         }
+      }
+
+      const dataPointModel = new swim.CompoundModel();
+      const dataPointTrait = new swim.DataPointTrait();
+      const t = new Date().getTime();
+      dataPointTrait.setX(new swim.DateTime(t));
+      let phasePlotValue = 0;
+      if (phase === 2 || phase == 3) {
+        phasePlotValue = 1;
+      }
+      dataPointTrait.setY(phasePlotValue  );
+      dataPointModel.setTrait("dataPoint", dataPointTrait);
+
+      if (phaseId === "0") {
+        this.plot0Model.appendChildModel(dataPointModel, "" + t);
+      }
+      if (phaseId === "1") {
+        this.plot1Model.appendChildModel(dataPointModel, "" + t);
       }
     }
   }
@@ -174,6 +196,52 @@
           this.schematic.updateApproachModel(approachModel);
         }
       }
+    }
+  }
+
+  class TrafficIntersectionInfoDownlink extends swim.ValueDownlinkTrait {
+    constructor(tableModel, nodeUri, laneUri) {
+      super();
+      this.tableModel = tableModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+    downlinkDidSet(value) {
+      value.forEach((item) => {
+        const key = item.key.stringValue(void 0);
+        if (key !== void 0) {
+          let displayKey = key;
+          const rowModel = this.getOrCreateRowModel(displayKey);
+          const valueCell = rowModel.getTrait("value");
+          const value = item.toValue().stringValue("");
+          valueCell.setContent(value);
+        }
+      });
+    }
+    updateRowModel(key, value) {
+      const rowModel = this.getOrCreateRowModel(key, value);
+      const valueCell = rowModel.getTrait("value");
+      valueCell.setContent(value);
+      return rowModel;
+    }
+    getOrCreateRowModel(key, value) {
+      let rowModel = this.tableModel.getChildModel(key);
+      if (rowModel === null) {
+        rowModel = this.createRowModel(key);
+        this.appendChildModel(rowModel, key);
+      }
+      return rowModel;
+    }
+    createRowModel(key) {
+      const rowModel = new swim.CompoundModel();
+      const rowTrait = new swim.RowTrait();
+      const keyCell = new swim.CellTrait();
+      keyCell.setContent(key);
+      const valueCell = new swim.CellTrait();
+      rowModel.setTrait("row", rowTrait);
+      rowModel.setTrait("key", keyCell);
+      rowModel.setTrait("value", valueCell);
+      rowModel.setTrait("status", new swim.StatusTrait());
+      return rowModel;
     }
   }
 
@@ -204,7 +272,7 @@
   }
 
   class TrafficIntersectionsGroup extends swim.DownlinkNodeGroup {
-    constructor(nodeUri, laneUri, metaHostUri) {
+    constructor(nodeUri, laneUri,  metaHostUri) {
       super(metaHostUri);
       this.downlink.nodeUri(nodeUri).laneUri(laneUri);
     }
@@ -232,14 +300,96 @@
       schematicDownlinkTrait.driver.setTrait(districtTrait);
       nodeModel.setTrait("schematicDownlink", schematicDownlinkTrait);
 
-      const phaseStateDownlink = new TrafficIntersectionPhaseStateDownlink(schematicDownlinkTrait, entityTrait.uri, PHASE_STATE_URI);
-      phaseStateDownlink.driver.setTrait(districtTrait);
-      nodeModel.setTrait("phaseStateDownlink", phaseStateDownlink);
-
       const detectorStateDownlink = new TrafficIntersectionDetectorStateDownlink(schematicDownlinkTrait, entityTrait.uri, DETECTOR_STATE_URI);
       detectorStateDownlink.driver.setTrait(districtTrait);
       nodeModel.setTrait("detectorStateDownlink", detectorStateDownlink);
+
+      const widgetGroup = new swim.WidgetGroup();
+      entityTrait.setTrait("widgets", widgetGroup);
+
+      const phaseWidget = this.createPhaseWidget(entityTrait);
+      entityTrait.appendChildModel(phaseWidget, "phase");
+
+      const plot0Model = phaseWidget.getChildModel("phase0").getChildModel("phase0");
+      const plot1Model = phaseWidget.getChildModel("phase1").getChildModel("phase1");
+
+      const phaseStateDownlink = new TrafficIntersectionPhaseStateDownlink(schematicDownlinkTrait, plot0Model, plot1Model, entityTrait.uri, PHASE_STATE_URI);
+      phaseStateDownlink.driver.setTrait(districtTrait);
+      nodeModel.setTrait("phaseStateDownlink", phaseStateDownlink);
+
+      const infoWidget = this.createInfoWidget(entityTrait);
+      entityTrait.appendChildModel(infoWidget, "info");
+
     }
+
+    createPhaseWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setTitle("Phase");
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+
+      const phase0Model = this.createPhaseModel(entityTrait, "phase0");
+      const phase1Model = this.createPhaseModel(entityTrait, "phase1");
+      widgetModel.appendChildModel(phase0Model, "phase0");
+      widgetModel.appendChildModel(phase1Model, "phase1");
+      return widgetModel;
+    }
+
+    createPhaseModel(entityTrait, key) {
+      const plotModel = new swim.CompoundModel();
+      const plotTrait = new swim.LinePlotTrait();
+      plotModel.setTrait("plot", plotTrait);
+      const dataSetTrait = new swim.DataSetTrait();
+      plotModel.setTrait("dataSet", dataSetTrait);
+
+      const chartModel = new swim.CompoundModel();
+      const chartTrait = new swim.ChartTrait();
+      chartModel.setTrait("chart", chartTrait);
+      const graphTrait = new swim.GraphTrait();
+      chartModel.setTrait("graph", graphTrait);
+      chartModel.appendChildModel(plotModel, key);
+
+      return chartModel;
+    }
+
+    createInfoWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+      widgetTrait.setTitle("Info");
+
+      const tableModel = this.createInfoTable(entityTrait);
+      widgetModel.appendChildModel(tableModel, "table");
+
+      return widgetModel;
+    }
+    createInfoTable(entityTrait) {
+      const tableModel = new swim.CompoundModel();
+      const tableTrait = new swim.TableTrait();
+      tableTrait.setColSpacing(swim.Length.px(12));
+      tableModel.setTrait("table", tableTrait);
+
+      const keyColModel = new swim.CompoundModel();
+      const keyColTrait = new swim.ColTrait();
+      keyColModel.setTrait("col", keyColTrait);
+      keyColTrait.setLayout({key: "key", grow: 1, textColor: swim.Look.mutedColor});
+      tableModel.appendChildModel(keyColModel);
+
+      const valueColModel = new swim.CompoundModel();
+      const valueColTrait = new swim.ColTrait();
+      valueColModel.setTrait("col", valueColTrait);
+      valueColTrait.setLayout({key: "value", grow: 2});
+      tableModel.appendChildModel(valueColModel);
+
+      const downlinkTrait = new TrafficIntersectionInfoDownlink(tableModel, entityTrait.uri, INFO_URI);
+      downlinkTrait.driver.setTrait(tableTrait);
+      tableModel.setTrait("downlink", downlinkTrait);
+
+      return tableModel;
+    }
+
     updateNodeModel(nodeModel, value) {
       const entityTrait = nodeModel.getTrait(swim.EntityTrait);
       //console.log("TrafficIntersectionsGroup.updateNodeModel " + entityTrait.uri + ":", value.toAny());
@@ -247,6 +397,51 @@
     onStopConsuming() {
       super.onStopConsuming();
       this.removeAll();
+    }
+  }
+
+  class TrafficCitiesKpisDownlink extends swim.ValueDownlinkTrait {
+    constructor(redLightsPieModel, greenLightsPieModel, pedPieModel, nodeUri, laneUri) {
+      super();
+      this.redLightsPieModel = redLightsPieModel;
+      this.greenLightsPieModel = greenLightsPieModel;
+      this.pedPieModel = pedPieModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+
+    downlinkDidSet(value) {
+      const redWaiting = value.get("redWaiting").numberValue();
+      const redClear = value.get("redClear").numberValue();
+      const greenFlowing = value.get("greenFlowing").numberValue();
+      const greenClear = value.get("greenClear").numberValue();
+      const pedWaiting = value.get("pedWaiting").numberValue();
+      const pedClear = value.get("pedClear").numberValue();
+
+      this.updatePieSlice(this.redLightsPieModel, "redWaiting", redWaiting, "Waiting");
+      this.updatePieSlice(this.redLightsPieModel, "redClear", redClear, "Clear");
+      this.updatePieSlice(this.greenLightsPieModel, "greenFlowing", greenFlowing, "Flowing");
+      this.updatePieSlice(this.greenLightsPieModel, "greenClear", greenClear, "Clear");
+      this.updatePieSlice(this.pedPieModel, "pedWaiting", pedWaiting, "Waiting");
+      this.updatePieSlice(this.pedPieModel, "pedClear", pedClear, "Clear");
+    }
+
+    updatePieSlice(pieModel, sliceKey, sliceValue, legend) {
+      let sliceModel = pieModel.getChildModel(sliceKey);
+      if (sliceModel === null) {
+        sliceModel = new swim.CompoundModel();
+        sliceModel.setTrait("slice", new swim.SliceTrait());
+        sliceModel.setTrait("status", new swim.StatusTrait());
+        pieModel.setChildModel(sliceKey, sliceModel);
+      }
+      let status = swim.Status.warning;
+      let statusFactor = 0;
+      const sliceTrait = sliceModel.getTrait("slice");
+      const sliceStatusTrait = sliceModel.getTrait("status");
+      /*sliceTrait.formatLabel = function (value) {
+        return value + "";
+      };*/
+      sliceTrait.setValue(sliceValue);
+      sliceTrait.setLegend(legend + " " + sliceValue);
     }
   }
 
@@ -299,10 +494,85 @@
       nodeModel.setChildModel("subdistricts", subdistricts);
       entityTrait.subentities.child = false;
       entityTrait.subentities.setModel(subdistricts);
+
+      const widgetGroup = new swim.WidgetGroup();
+      entityTrait.setTrait("widgets", widgetGroup);
+
+      const greenLightsWidget = this.createGreenLightsWidget(entityTrait);
+      entityTrait.appendChildModel(greenLightsWidget, "greenLights");
+
+      const redLightsWidget = this.createRedLightsWidget(entityTrait);
+      entityTrait.appendChildModel(redLightsWidget, "redLights");
+
+      const pedWidget = this.createPedWidget(entityTrait);
+      entityTrait.appendChildModel(pedWidget, "pedWidget");
+
+      const redLightsPieModel = redLightsWidget.getChildModel("pie")
+      const downlinkTrait = new TrafficCitiesKpisDownlink(redLightsPieModel,
+                                                          greenLightsWidget.getChildModel("pie"),
+                                                          pedWidget.getChildModel("pie"),
+                                                          entityTrait.uri, CITY_STATE_URI);
+      downlinkTrait.driver.setTrait(redLightsPieModel.getTrait("pie"));
+      redLightsPieModel.setTrait("downlink", downlinkTrait);
+
     }
     updateNodeModel(nodeModel, value) {
       //const entityTrait = nodeModel.getTrait(swim.EntityTrait);
       //console.log("TrafficCitiesGroup.updateNodeModel " + entityTrait.uri + ":", value.toAny());
+    }
+    createRedLightsWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setTitle("Red Lights- Vehicle Backup");
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+
+      const pieModel = this.createRedLightsGadget(entityTrait);
+      widgetModel.appendChildModel(pieModel, "pie");
+
+      return widgetModel;
+    }
+    createRedLightsGadget(entityTrait) {
+      const pieModel = new swim.CompoundModel();
+      const pieTrait = new swim.PieTrait();
+      pieModel.setTrait("pie", pieTrait);
+      return pieModel;
+    }
+    createGreenLightsWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setTitle("Green Lights- Vehicle Flow");
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+
+      const pieModel = this.createGreenLightsGadget(entityTrait);
+      widgetModel.appendChildModel(pieModel, "pie");
+
+      return widgetModel;
+    }
+    createGreenLightsGadget(entityTrait) {
+      const pieModel = new swim.CompoundModel();
+      const pieTrait = new swim.PieTrait();
+      pieModel.setTrait("pie", pieTrait);
+      return pieModel;
+    }
+    createPedWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setTitle("Pedestrian Backup");
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+
+      const pieModel = this.createPedGadget(entityTrait);
+      widgetModel.appendChildModel(pieModel, "pie");
+
+      return widgetModel;
+    }
+    createPedGadget(entityTrait) {
+      const pieModel = new swim.CompoundModel();
+      const pieTrait = new swim.PieTrait();
+      pieModel.setTrait("pie", pieTrait);
+      return pieModel;
     }
     onStopConsuming() {
       super.onStopConsuming();

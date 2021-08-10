@@ -18,7 +18,6 @@ import swim.api.plane.AbstractPlane;
 import swim.api.space.Space;
 import swim.kernel.Kernel;
 import swim.server.ServerLoader;
-import swim.structure.Value;
 
 public class TrafficPlane extends AbstractPlane {
 

@@ -19,8 +19,12 @@ import swim.api.SwimResident;
 import swim.api.agent.AbstractAgent;
 import swim.api.downlink.MapDownlink;
 import swim.api.lane.JoinValueLane;
+import swim.api.lane.ValueLane;
+import swim.structure.Record;
 import swim.structure.Value;
 import swim.uri.Uri;
+
+import java.util.Set;
 
 public class CityAgent extends AbstractAgent {
   MapDownlink<Uri, Value> intersectionsLink;
@@ -28,6 +32,34 @@ public class CityAgent extends AbstractAgent {
   @SwimLane("intersections")
   @SwimResident
   public JoinValueLane<Uri, Value> intersections;
+
+  @SwimLane("intersectionStates")
+  @SwimResident
+  public JoinValueLane<Uri, Value> intersectionStates = this.<Uri, Value>joinValueLane().didUpdate((key, newValue, oldValue) -> {
+    computeState();
+  });
+
+  private void computeState() {
+    final Set<Uri> uris = intersectionStates.keySet();
+    int redWaiting = 0, redClear = 0, greenClear = 0, greenFlowing = 0, pedWaiting = 0, pedClear = 0;
+    for(Uri uri: uris) {
+      final Value intersectionState = intersectionStates.get(uri);
+      redWaiting += intersectionState.get("redWaiting").intValue(0);
+      redClear += intersectionState.get("redClear").intValue(0);
+      greenFlowing += intersectionState.get("greenFlowing").intValue(0);
+      greenClear += intersectionState.get("greenClear").intValue(0);
+      pedWaiting += intersectionState.get("pedWaiting").intValue(0);
+      pedClear += intersectionState.get("pedClear").intValue(0);
+    }
+    final Record stateValue = Record.create(6)
+        .slot("redWaiting", redWaiting).slot("redClear", redClear)
+        .slot("greenFlowing", greenFlowing).slot("greenClear", greenClear)
+        .slot("pedWaiting", pedWaiting).slot("pedClear", pedClear);
+    state.set(stateValue);
+  }
+
+  @SwimLane("state")
+  public ValueLane<Value> state;
 
   public void linkIntersections() {
     if (intersectionsLink == null) {
@@ -56,6 +88,12 @@ public class CityAgent extends AbstractAgent {
           .laneUri(INTERSECTION_INFO)
           .open();
     }
+    if (!intersectionStates.containsKey(intersectionUri)) {
+      intersectionStates.downlink(intersectionUri)
+          .nodeUri(intersectionUri)
+          .laneUri(INTERSECTION_STATE)
+          .open();
+    }
   }
 
   public void didStart() {
@@ -69,6 +107,5 @@ public class CityAgent extends AbstractAgent {
 
   static final Uri TRAFFIC_HOST = Uri.parse("warps://trafficware.swim.services?key=ab21cfe05ba-7d43-69b2-0aef-94d9d54b6f65");
   static final Uri INTERSECTION_INFO = Uri.parse("intersection/info");
-  static final Uri NEIGHBOR_ADD = Uri.parse("neighbor/add");
-  static final Uri NEIGHBOR_REMOVE = Uri.parse("neighbor/remove");
+  static final Uri INTERSECTION_STATE = Uri.parse("intersection/state");
 }

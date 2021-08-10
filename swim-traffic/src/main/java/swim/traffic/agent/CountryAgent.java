@@ -25,7 +25,7 @@ public class CountryAgent extends AbstractAgent {
 
   @SwimLane("cities")
   public MapLane<Uri, Uri> cities = this.<Uri, Uri>mapLane().didUpdate((key, newValue, oldValue) -> {
-    command("/city/PaloAlto_CA_US", "wake", Value.absent());
+    command(newValue.toString(), "wake", Value.absent());
   });
 
   public void didStart() {
