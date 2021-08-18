@@ -32,11 +32,11 @@ ext.moduleArgs = ['--add-modules', 'swim.meta']
 
 repositories {
   mavenCentral()
-  maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
 dependencies {
   api group: 'org.swimos', name: 'swim-api', version: swimVersion
+  api group: 'org.swimos', name: 'swim-csv', version: swimVersion
   implementation group: 'org.swimos', name: 'swim-server', version: swimVersion
   runtimeOnly group: 'org.swimos', name: 'swim-meta', version: swimVersion
 }
@@ -44,8 +44,8 @@ dependencies {
 afterEvaluate {
   configurations {
     apiElements {
-      sourceCompatibility = JavaVersion.VERSION_1_8
-      targetCompatibility = JavaVersion.VERSION_1_8
+      sourceCompatibility = JavaVersion.VERSION_1_9
+      targetCompatibility = JavaVersion.VERSION_1_9
     }
   }
 
@@ -77,8 +77,8 @@ afterEvaluate {
   compileJava {
     options.compilerArgs += compilerArgs
     options.encoding = 'UTF-8'
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_1_9
+    targetCompatibility = JavaVersion.VERSION_1_9
     exclude '*module-info*'
   }
 

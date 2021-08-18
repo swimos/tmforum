@@ -120,7 +120,10 @@ public class ENodeBAgent extends AbstractAgent {
 
     // Update the kpis lane with the computed values.
     final Value newKpis = oldKpis
+        .updated("severity", Math.round(status.get().get("severity").doubleValue(0.0)))
+        .updated("mean_ul_sinr", Math.round(newMeanUlSinr))
         .updated("avg_mean_ul_sinr", Math.round(newAvgMeanUlSinr))
+        .updated("rrc_re_establishment_failures", newRrcReEstablishmentFailures)
         .updated("sum_rrc_re_establishment_failures", newSumRrcReEstablishmentFailures)
         .updated("count", oldCount + 1);
     this.kpis.set(newKpis);

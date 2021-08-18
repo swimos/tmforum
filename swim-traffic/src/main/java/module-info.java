@@ -14,7 +14,7 @@
 
 open module swim.traffic {
   requires transitive swim.api;
-  requires swim.server;
+  requires transitive swim.server;
   requires swim.meta;
 
   exports swim.traffic;

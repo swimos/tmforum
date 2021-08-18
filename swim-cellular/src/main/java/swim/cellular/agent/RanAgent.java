@@ -8,9 +8,11 @@ import swim.api.lane.JoinValueLane;
 import swim.api.lane.MapLane;
 import swim.api.lane.ValueLane;
 import swim.cellular.CellularResources;
+import swim.recon.Recon;
 import swim.structure.Item;
 import swim.structure.Record;
 import swim.structure.Slot;
+import swim.structure.Text;
 import swim.structure.Value;
 import swim.uri.Uri;
 
@@ -122,25 +124,28 @@ public class RanAgent extends AbstractAgent {
   void seed() {
     final String seedResource = getProp("seed").stringValue(null);
     if (seedResource != null) {
-      final Value seedValue = CellularResources.loadReconResource(seedResource);
+      final Value seedValue = CellularResources.loadCsvResource(seedResource);
 
       // Seed the cell sites in this radio access network, and join the status
       // lane of each cell site into the sites join-value lane.
-      final Value seedSites = seedValue.get("sites");
-      seedSites.forEach((Item seedSite) -> {
-        final Value key = seedSite.get("node");
-        final Uri nodeUri = key.cast(Uri.form());
+      seedValue.forEach((Item seedSite) -> {
+        final String id = seedSite.get("Id").stringValue();
+        final String node = "/site/" + id;
+        final Uri nodeUri = Uri.parse(node);
         final Uri infoLaneUri = Uri.parse("info");
         final Uri statusLaneUri = Uri.parse("status");
-
+        final Record info = seedSite.branch().updatedSlot("node", node);
         // Seed the cell site info.
-        command(nodeUri, infoLaneUri, seedSite.toValue());
+        command(nodeUri, infoLaneUri, info);
         // Seed the cell site status with the location of the cell site
         // (for convenient use by the UI).
-        command(nodeUri, statusLaneUri, Record.of(Slot.of("coordinates", seedSite.get("coordinates"))));
+        final double latitude = seedSite.get("Latitude").doubleValue();
+        final double longitude = seedSite.get("Longitude").doubleValue();
+        final Value coordinates = Recon.parse("{" + longitude + ", " + latitude + "}");
+        command(nodeUri, statusLaneUri, Record.of(Slot.of("coordinates", coordinates)));
 
         // Join the cell site status.
-        this.sites.downlink(key)
+        this.sites.downlink(Text.from(node))
             .nodeUri(nodeUri)
             .laneUri(statusLaneUri)
             //.didConnect(() -> {

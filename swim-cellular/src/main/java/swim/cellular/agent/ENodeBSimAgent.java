@@ -41,7 +41,7 @@ public class ENodeBSimAgent extends AbstractAgent {
 
     // Reschedule the simulation timer to execute again at a random time
     // between 0 and 60 seconds from now.
-    this.simTicker.reschedule(Math.round(60000L * Math.random()));
+    this.simTicker.reschedule(Math.round(30000L * Math.random()));
 
     // Generate a random alert category with a 10% chance of a warning,
     // and a 1% chance of an alert.

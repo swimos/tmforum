@@ -1,6 +1,7 @@
 open module swim.cellular {
   requires transitive swim.api;
-  requires swim.server;
+  requires transitive swim.csv;
+  requires transitive swim.server;
 
   exports swim.cellular;
 

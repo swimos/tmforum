@@ -15,7 +15,7 @@
 open module swim.transit {
   requires swim.xml;
   requires transitive swim.api;
-  requires swim.server;
+  requires transitive swim.server;
   requires swim.meta;
 
   exports swim.transit;

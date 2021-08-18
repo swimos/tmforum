@@ -1,10 +1,13 @@
 package swim.cellular;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import swim.codec.ParserException;
 import swim.codec.Utf8;
+import swim.csv.Csv;
 import swim.json.Json;
 import swim.recon.Recon;
 import swim.structure.Value;
@@ -52,6 +55,35 @@ public final class CellularResources {
       try {
         if (reconInput != null) {
           reconInput.close();
+        }
+      } catch (IOException swallow) {
+      }
+    }
+    return reconValue;
+  }
+
+  public static Value loadCsvResource(String csv) {
+    Value reconValue = null;
+    InputStream csvInput = null;
+    try {
+      csvInput = CellularPlane.class.getClassLoader().getResourceAsStream(csv);
+      if (csvInput != null) {
+        final BufferedReader br = new BufferedReader(new InputStreamReader(csvInput));
+        final StringBuilder sb = new StringBuilder();
+        String line = null;
+        while ((line = br.readLine()) != null) {
+          sb.append(line);
+          sb.append("\n");
+        }
+        final String table = sb.toString();
+        reconValue = Csv.parseTable(table);
+      }
+    } catch (IOException cause) {
+      throw new ParserException(cause);
+    } finally {
+      try {
+        if (csvInput != null) {
+          csvInput.close();
         }
       } catch (IOException swallow) {
       }

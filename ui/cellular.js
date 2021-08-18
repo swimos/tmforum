@@ -67,10 +67,18 @@
         const key = item.key.stringValue(void 0);
         if (key !== void 0) {
           let displayKey = key;
-          if (key === "avg_mean_ul_sinr") {
+          if (key === "mean_ul_sinr") {
+            displayKey = "Latest Mean Sinr"
+          } else if (key == "avg_mean_ul_sinr") {
             displayKey = "Avg Mean Sinr"
           } else if (key == "sum_rrc_re_establishment_failures") {
             displayKey = "Sum Reconnect Failures"
+          } else if (key == "rrc_re_establishment_failures") {
+            displayKey = "Latest Reconnect Failures"
+          } else if (key == "severity") {
+            displayKey = "Alert Severity"
+          } else if (key == "count") {
+            displayKey = "Total Sample Count"
           }
           const rowModel = this.getOrCreateRowModel(displayKey);
           const valueCell = rowModel.getTrait("value");
@@ -81,10 +89,18 @@
     }
     updateRowModel(key, value) {
       let displayKey = key;
-      if (key === "avg_mean_ul_sinr") {
+      if (key === "mean_ul_sinr") {
+        displayKey = "Latest Mean Sinr"
+      } else if (key == "avg_mean_ul_sinr") {
         displayKey = "Avg Mean Sinr"
       } else if (key == "sum_rrc_re_establishment_failures") {
         displayKey = "Sum Reconnect Failures"
+      } else if (key == "rrc_re_establishment_failures") {
+        displayKey = "Latest Reconnect Failures"
+      } else if (key == "severity") {
+        displayKey = "Alert Severity"
+      } else if (key == "count") {
+        displayKey = "Total Sample Count"
       }
       const rowModel = this.getOrCreateRowModel(displayKey, value);
       const valueCell = rowModel.getTrait("value");
@@ -122,7 +138,7 @@
     downlinkDidSet(value) {
       value.forEach((item) => {
         const key = item.key.stringValue(void 0);
-        if (key !== void 0 & key !== "coordinates") {
+        if (key !== void 0 & key !== "Latitude" & key !== "Longitude" & key !== "node" & key != "SectorId") {
           let displayKey = key;
           const rowModel = this.getOrCreateRowModel(displayKey);
           const valueCell = rowModel.getTrait("value");
@@ -335,13 +351,13 @@
       const keyColModel = new swim.CompoundModel();
       const keyColTrait = new swim.ColTrait();
       keyColModel.setTrait("col", keyColTrait);
-      keyColTrait.setLayout({key: "key", grow: 1, textColor: swim.Look.mutedColor});
+      keyColTrait.setLayout({key: "key", grow: 5, textColor: swim.Look.mutedColor});
       tableModel.appendChildModel(keyColModel);
 
       const valueColModel = new swim.CompoundModel();
       const valueColTrait = new swim.ColTrait();
       valueColModel.setTrait("col", valueColTrait);
-      valueColTrait.setLayout({key: "value", grow: 2});
+      valueColTrait.setLayout({key: "value", grow: 1});
       tableModel.appendChildModel(valueColModel);
 
       const downlinkTrait = new CellularSiteInfoDownlink(tableModel, entityTrait.uri, INFO_URI);
