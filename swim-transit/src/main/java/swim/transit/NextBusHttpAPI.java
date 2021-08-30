@@ -18,8 +18,10 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import swim.api.ref.SwimRef;
 import swim.codec.Utf8;
@@ -43,12 +45,8 @@ public class NextBusHttpAPI {
     }
   }
 
-  public static void sendVehicleInfo(String pollUrl, Agency ag, SwimRef swim) {
-    final Vehicles vehicles = getVehicleLocations(pollUrl, ag);
-    if (vehicles != null && vehicles.getVehicles().size() > 0) {
-      final Value value = Form.forClass(Vehicles.class).mold(vehicles).toValue();
-      swim.command(ag.getUri(), "addVehicles", value);
-    }
+  public static Vehicles sendVehicleInfo(String pollUrl, Agency ag, SwimRef swim) {
+    return getVehicleLocations(pollUrl, ag);
   }
 
   private static void sendRoutes(Agency agency, SwimRef swim) {

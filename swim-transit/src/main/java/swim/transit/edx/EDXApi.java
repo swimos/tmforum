@@ -1,4 +1,4 @@
-package swim.cellular.edx;
+package swim.transit.edx;
 
 import swim.codec.Utf8;
 import swim.json.Json;
@@ -6,6 +6,7 @@ import swim.structure.Value;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+
 public class EDXApi {
 
   private static final String POINT_STUDY_URL = "https://tmforum-staging-api.edx.com/cse/study/ea8123b9-8a5c-f7df-90f0-91a2f7bc4f2f/point?lat=%s&lon=%s";
@@ -25,7 +26,7 @@ public class EDXApi {
       urlConnection.setRequestProperty("x-functions-key", API_KEY);
       return Utf8.read(Json.structureParser().valueParser(), urlConnection.getInputStream());
     } catch (Throwable e) {
-      e.printStackTrace();
+      //e.printStackTrace();
     }
     return Value.absent();
   }

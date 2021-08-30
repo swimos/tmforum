@@ -29,8 +29,5 @@ traffic: @fabric {
     @agent(class: "swim.traffic.agent.IntersectionAgent")
   }
 
-  @store {
-    path: "/tmp/swim-traffic/"
-  }
 
 }

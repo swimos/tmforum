@@ -45,17 +45,14 @@ public class AgencyAgent extends AbstractAgent {
   @SwimLane("speed")
   public ValueLane<Float> vehiclesSpeed;
 
-  @SwimLane("addVehicles")
-  public CommandLane<Vehicles> addVehicles = this.<Vehicles>commandLane().onCommand(this::onVehicles);
-
   @SwimLane("boundingBox")
   public ValueLane<BoundingBox> boundingBox;
 
   private void onVehicles(Vehicles newVehicles) {
-    System.out.println(nodeUri().toString() + "- vehicles size " + newVehicles.getVehicles().size());
     if (newVehicles == null || newVehicles.getVehicles().size() == 0) {
       return;
     }
+    info(nodeUri().toString() + "- vehicles size " + newVehicles.getVehicles().size());
     updateVehicles(newVehicles.getVehicles());
     int speedSum = 0;
     float minLat = Integer.MAX_VALUE, minLng = Integer.MAX_VALUE, maxLat = Integer.MIN_VALUE, maxLng = Integer.MIN_VALUE;
@@ -148,7 +145,8 @@ public class AgencyAgent extends AbstractAgent {
 
       @Override
       public void runTask() {
-        NextBusHttpAPI.sendVehicleInfo(this.url, this.agency, AgencyAgent.this.context);
+        Vehicles response = NextBusHttpAPI.sendVehicleInfo(this.url, this.agency, AgencyAgent.this.context);
+        onVehicles(response);
       }
 
       @Override

@@ -11,6 +11,8 @@
 
   const SPEEDS_URI = swim.Uri.parse("speeds");
 
+  const RSRPS_URI = swim.Uri.parse("rsrps");
+
   const MIN_VEHICLE_ZOOM = 11;
 
   const busIcon = swim.VectorIcon.create(24, 24, "M12.2,4C15.9,4,18.9,4.4,19,7.2L19,7.3L19,15.8C19,16.5,18.7,17.1,18.2,17.5L18.1,17.6L18.1,19.1C18.1,19.6,17.8,19.9,17.3,20L17.2,20L16.4,20C15.9,20,15.5,19.6,15.5,19.2L15.5,19.1L15.5,18L8.5,18L8.5,19.1C8.5,19.6,8.2,19.9,7.7,20L7.6,20L6.7,20C6.3,20,5.9,19.6,5.9,19.2L5.9,19.1L5.9,17.6C5.4,17.2,5,16.6,5,15.9L5,15.8L5,7.3C5,4.4,8,4,11.8,4L12.2,4ZM8,16.5C8.8,16.5,9.5,15.8,9.5,15C9.5,14.2,8.8,13.5,8,13.5C7.2,13.5,6.5,14.2,6.5,15C6.5,15.8,7.2,16.5,8,16.5ZM16,16.5C16.8,16.5,17.5,15.8,17.5,15C17.5,14.2,16.8,13.5,16,13.5C15.2,13.5,14.5,14.2,14.5,15C14.5,15.8,15.2,16.5,16,16.5ZM17,7L7,7L7,12L17,12L17,7Z");
@@ -36,6 +38,41 @@
     }
   }
 
+  class TransitRsrpDownlink extends swim.MapDownlinkTrait {
+    constructor(plotModel, nodeUri, laneUri) {
+      super();
+      this.plotModel = plotModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+    downlinkDidUpdate(key, value) {
+      const t = key.numberValue(void 0);
+      const rsrp0 = value.numberValue(void 0);
+      if (t !== void 0 && rsrp0 !== void 0) {
+        const dataPointModel = new swim.CompoundModel();
+        const dataPointTrait = new swim.DataPointTrait();
+        dataPointTrait.setX(new swim.DateTime(t));
+        dataPointTrait.setY(rsrp0);
+        dataPointModel.setTrait("dataPoint", dataPointTrait);
+        this.plotModel.appendChildModel(dataPointModel, "" + t);
+
+      const rsrpStatusTrait = this.plotModel.getTrait(swim.StatusTrait);
+
+      const criticalRsrp = -150;
+      const alertRsrp = -120;
+      const warningRsrp = -100;
+      if (rsrp0 < alertRsrp) {
+        const alert = Math.min((rsrp0 - alertRsrp) / (criticalRsrp - alertRsrp), 1);
+        rsrpStatusTrait.setStatusFactor("rsrp", swim.StatusFactor.create("Rsrp", swim.StatusVector.of([swim.Status.alert, alert])));
+      } else if (speed > warningSpeed) {
+        const warning = (rsrp0 - warningRsrp) / (alertRsrp - warningRsrp);
+        rsrpStatusTrait.setStatusFactor("rsrp", swim.StatusFactor.create("Rsrp", swim.StatusVector.of([swim.Status.warning, warning])));
+      } else {
+        rsrpStatusTrait.setStatusFactor("rsrp", null);
+      }
+      }
+    }
+  }
+
   class TransitVehicleDownlink extends swim.ValueDownlinkTrait {
     constructor(agencyName, tableModel, nodeUri, laneUri) {
       super();
@@ -47,10 +84,15 @@
       //console.log("TransitVehicleDownlink.downlinkDidSet " + this.downlink.nodeUri() + ":", value.toAny());
       this.updateRowModel("Bus", value.get("id").stringValue(""));
       this.updateRowModel("Agency", value.get("agency").stringValue("") || this.agencyName);
+      this.updateRowModel("Route Title", value.get("routeTitle").stringValue(""));
       this.updateRowModel("Route", value.get("routeTag").stringValue(""));
       this.updateRowModel("Direction", value.get("dirId").stringValue(""));
       this.updateRowModel("Heading", value.get("heading").stringValue(""));
       this.updateRowModel("Speed", value.get("speed").stringValue("0") + "mph");
+      this.updateRowModel("Acceleration", value.get("acceleration").stringValue("0") + "mph");
+      this.updateRowModel("RSRP0", value.get("rsrp0").stringValue(""));
+      this.updateRowModel("RSRP1", value.get("rsrp1").stringValue(""));
+      this.updateRowModel("RSRP2", value.get("rsrp2").stringValue(""));
     }
     updateRowModel(key, value) {
       const rowModel = this.getOrCreateRowModel(key, value);
@@ -110,6 +152,9 @@
 
       const telemetryWidget = this.createTelemetryWidget(entityTrait);
       entityTrait.appendChildModel(telemetryWidget, "telemetry");
+
+      const rsrpWidget = this.createRsrpWidget(entityTrait);
+      entityTrait.appendChildModel(rsrpWidget, "rsrp");
     }
     updateNodeModel(nodeModel, value) {
       const entityTrait = nodeModel.getTrait(swim.EntityTrait);
@@ -154,7 +199,7 @@
       } else if (speed > warningSpeed) {
         const warning = (speed - warningSpeed) / (alertSpeed - warningSpeed);
         statusTrait.setStatusFactor("speed", swim.StatusFactor.create("Speed", swim.StatusVector.of([swim.Status.warning, warning])));
-        speedHistoryStatusTrait.setStatusFactor("speed", swim.StatusFactor.create("Speed", swim.StatusVector.of([swim.Status.warning, warning])));
+        speedDialStatusTrait.setStatusFactor("speed", swim.StatusFactor.create("Speed", swim.StatusVector.of([swim.Status.warning, warning])));
         speedHistoryStatusTrait.setStatusFactor("speed", swim.StatusFactor.create("Speed", swim.StatusVector.of([swim.Status.warning, warning])));
       } else {
         statusTrait.setStatusFactor("speed", null);
@@ -255,11 +300,49 @@
 
       return chartModel;
     }
+
+    createRsrpWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setTitle("RSRP");
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+
+      const rsrpHistoryModel = this.createRsrpHistoryGadget(entityTrait);
+      widgetModel.appendChildModel(rsrpHistoryModel, "rsrpHistory");
+
+      return widgetModel;
+    }
+    createRsrpHistoryGadget(entityTrait) {
+      const plotModel = new swim.CompoundModel();
+      const plotTrait = new swim.LinePlotTrait();
+      plotModel.setTrait("plot", plotTrait);
+      const plotStatus = new swim.StatusTrait();
+      plotModel.setTrait("status", plotStatus);
+      const dataSetTrait = new swim.DataSetTrait();
+      plotModel.setTrait("dataSet", dataSetTrait);
+
+      const chartModel = new swim.CompoundModel();
+      const chartTrait = new swim.ChartTrait();
+      chartModel.setTrait("chart", chartTrait);
+      const graphTrait = new swim.GraphTrait();
+      chartModel.setTrait("graph", graphTrait);
+      chartModel.appendChildModel(plotModel, "rsrp");
+
+      const downlinkTrait = new TransitRsrpDownlink(plotModel, entityTrait.uri, RSRPS_URI);
+      downlinkTrait.driver.setTrait(chartTrait);
+      chartModel.setTrait("downlink", downlinkTrait);
+
+      return chartModel;
+    }
+
     onStopConsuming() {
       super.onStopConsuming();
       this.removeAll();
     }
+
   }
+
 
   class TransitAgencyLocation extends swim.DownlinkLocationTrait {
     constructor(nodeUri, laneUri) {
