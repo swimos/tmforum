@@ -56,6 +56,47 @@
     }
   }
 
+  class CellularSiteNumUEsDownlink extends swim.MapDownlinkTrait {
+    constructor(numUEsModel, nodeUri, laneUri) {
+      super();
+      this.numUEsModel = numUEsModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+    downlinkDidUpdate(key, value) {
+      const t = key.numberValue(void 0);
+      const numUEs = value.get("numUEs").numberValue(void 0);
+      if (t !== void 0 && numUEs !== void 0) {
+        const dataPointModel = new swim.CompoundModel();
+        const dataPointTrait = new swim.DataPointTrait();
+        dataPointTrait.setX(new swim.DateTime(t));
+        dataPointTrait.setY(numUEs);
+        dataPointModel.setTrait("dataPoint", dataPointTrait);
+        this.numUEsModel.appendChildModel(dataPointModel, "" + t);
+      }
+    }
+  }
+
+  class CellularSiteThroughputDownlink extends swim.MapDownlinkTrait {
+    constructor(throughputModel, nodeUri, laneUri) {
+      super();
+      this.throughputModel = throughputModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+    downlinkDidUpdate(key, value) {
+      const t = key.numberValue(void 0);
+      const throughput = value.get("aveThroughputPerUser").numberValue(void 0);
+      if (t !== void 0 && throughput !== void 0) {
+        const dataPointModel = new swim.CompoundModel();
+        const dataPointTrait = new swim.DataPointTrait();
+        dataPointTrait.setX(new swim.DateTime(t));
+        dataPointTrait.setY(throughput);
+        dataPointModel.setTrait("dataPoint", dataPointTrait);
+        this.throughputModel.appendChildModel(dataPointModel, "" + t);
+      }
+    }
+  }
+
+
   class CellularSiteKpisDownlink extends swim.ValueDownlinkTrait {
     constructor(tableModel, nodeUri, laneUri) {
       super();
@@ -69,10 +110,10 @@
           let displayKey = key;
           if (key === "mean_ul_sinr") {
             displayKey = "Latest Mean Sinr"
-          } else if (key == "avg_mean_ul_sinr") {
-            displayKey = "Avg Mean Sinr"
-          } else if (key == "sum_rrc_re_establishment_failures") {
-            displayKey = "Sum Reconnect Failures"
+          } else if (key === "numUEs") {
+            displayKey = "# of UEs Connected"
+          } else if (key === "aveThroughputPerUser") {
+            displayKey = "Ave Throughput/User"
           } else if (key == "rrc_re_establishment_failures") {
             displayKey = "Latest Reconnect Failures"
           } else if (key == "severity") {
@@ -91,10 +132,10 @@
       let displayKey = key;
       if (key === "mean_ul_sinr") {
         displayKey = "Latest Mean Sinr"
-      } else if (key == "avg_mean_ul_sinr") {
-        displayKey = "Avg Mean Sinr"
-      } else if (key == "sum_rrc_re_establishment_failures") {
-        displayKey = "Sum Reconnect Failures"
+      } else if (key === "numUEs") {
+        displayKey = "# of UEs Connected"
+      } else if (key === "aveThroughputPerUser") {
+        displayKey = "Ave Throughput/User"
       } else if (key == "rrc_re_establishment_failures") {
         displayKey = "Latest Reconnect Failures"
       } else if (key == "severity") {
@@ -200,6 +241,12 @@
       const ranHistoryWidget = this.createRanHistoryWidget(entityTrait);
       entityTrait.appendChildModel(ranHistoryWidget, "ranHistory");
 
+      const numUEsWidget = this.createNumUEsWidget(entityTrait);
+      entityTrait.appendChildModel(numUEsWidget, "numUEs");
+
+      const throughputWidget = this.createThroughputWidget(entityTrait);
+      entityTrait.appendChildModel(throughputWidget, "throughput");
+
       const infoWidget = this.createInfoWidget(entityTrait);
       entityTrait.appendChildModel(infoWidget, "info");
 
@@ -236,6 +283,18 @@
       const rccPlotModel = ranHistoryModel.getChildModel("rrc");
       const rrcStatusTrait = rccPlotModel.getTrait(swim.StatusTrait);
 
+      const numUEsWidget = entityTrait.getChildModel("numUEs");
+      const numUEsModel = numUEsWidget.getChildModel("numUEs");
+
+      const numUEsPlotModel = numUEsModel.getChildModel("numUEs");
+      const numUEsStatusTrait = numUEsPlotModel.getTrait(swim.StatusTrait);
+
+      const throughputWidget = entityTrait.getChildModel("throughput");
+      const throughputModel = throughputWidget.getChildModel("throughput");
+
+      const throughputPlotModel = throughputModel.getChildModel("throughput");
+      const throughputStatusTrait = throughputPlotModel.getTrait(swim.StatusTrait);
+
       const statusTrait = nodeModel.getTrait(swim.StatusTrait);
       const severity = value.get("severity").numberValue(0);
       if (severity > 1) {
@@ -250,6 +309,18 @@
         statusTrait.setStatusFactor("site", null);
         sinrStatusTrait.setStatusFactor("site", null);
         rrcStatusTrait.setStatusFactor("site", null);
+      }
+
+      const throughput = value.get("aveThroughputPerUser").numberValue(0);
+      if (throughput > 2) {
+        throughputStatusTrait.setStatusFactor("site", null);
+        numUEsStatusTrait.setStatusFactor("site", null);
+      } else if (throughput > 1) {
+        throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, throughput - 1])));
+        numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, throughput - 1])));
+      } else {
+        throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.alert, throughput])));
+        numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.alert, throughput])));
       }
     }
     createKpiWidget(entityTrait) {
@@ -330,6 +401,75 @@
 
       return chartModel;
     }
+
+    createNumUEsWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setTitle("Number of UEs Connected");
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+
+      const numUEsModel = this.createNumUEsGadget(entityTrait);
+      widgetModel.appendChildModel(numUEsModel, "numUEs");
+      return widgetModel;
+    }
+    createNumUEsGadget(entityTrait) {
+      const numUEsModel = new swim.CompoundModel();
+      const numUEsPlotTrait = new swim.LinePlotTrait();
+      numUEsModel.setTrait("plot", numUEsPlotTrait);
+      const numUEsPlotStatus = new swim.StatusTrait();
+      numUEsModel.setTrait("status", numUEsPlotStatus);
+      const numUEsDataSetTrait = new swim.DataSetTrait();
+      numUEsModel.setTrait("dataSet", numUEsDataSetTrait);
+
+      const chartModel = new swim.CompoundModel();
+      const chartTrait = new swim.ChartTrait();
+      chartModel.setTrait("chart", chartTrait);
+      const graphTrait = new swim.GraphTrait();
+      chartModel.setTrait("graph", graphTrait);
+      chartModel.appendChildModel(numUEsModel, "numUEs");
+
+      const downlinkTrait = new CellularSiteNumUEsDownlink(numUEsModel, entityTrait.uri, RAN_HISTORY_URI);
+      downlinkTrait.driver.setTrait(chartTrait);
+      chartModel.setTrait("downlink", downlinkTrait);
+
+      return chartModel;
+    }
+
+    createThroughputWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setTitle("Average Throughput Per User");
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+
+      const throughputModel = this.createThroughputGadget(entityTrait);
+      widgetModel.appendChildModel(throughputModel, "throughput");
+      return widgetModel;
+    }
+    createThroughputGadget(entityTrait) {
+      const throughputModel = new swim.CompoundModel();
+      const throughputPlotTrait = new swim.LinePlotTrait();
+      throughputModel.setTrait("plot", throughputPlotTrait);
+      const throughputPlotStatus = new swim.StatusTrait();
+      throughputModel.setTrait("status", throughputPlotStatus);
+      const throughputDataSetTrait = new swim.DataSetTrait();
+      throughputModel.setTrait("dataSet", throughputDataSetTrait);
+
+      const chartModel = new swim.CompoundModel();
+      const chartTrait = new swim.ChartTrait();
+      chartModel.setTrait("chart", chartTrait);
+      const graphTrait = new swim.GraphTrait();
+      chartModel.setTrait("graph", graphTrait);
+      chartModel.appendChildModel(throughputModel, "throughput");
+
+      const downlinkTrait = new CellularSiteThroughputDownlink(throughputModel, entityTrait.uri, RAN_HISTORY_URI);
+      downlinkTrait.driver.setTrait(chartTrait);
+      chartModel.setTrait("downlink", downlinkTrait);
+
+      return chartModel;
+    }
+
     createInfoWidget(entityTrait) {
       const widgetModel = new swim.CompoundModel();
       const widgetTrait = new swim.WidgetTrait();

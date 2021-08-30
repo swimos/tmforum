@@ -3,6 +3,7 @@ package swim.cellular.agent;
 import swim.api.SwimLane;
 import swim.api.agent.AbstractAgent;
 import swim.api.lane.ValueLane;
+import swim.cellular.edx.EDXApi;
 import swim.concurrent.TimerRef;
 import swim.structure.Record;
 import swim.structure.Value;
@@ -33,6 +34,7 @@ public class ENodeBSimAgent extends AbstractAgent {
   @SwimLane("ranLatest")
   ValueLane<Value> ranLatest;
 
+
   /**
    * Runs a single step of the eNodeB simulation.
    */
@@ -42,6 +44,33 @@ public class ENodeBSimAgent extends AbstractAgent {
     // Reschedule the simulation timer to execute again at a random time
     // between 0 and 60 seconds from now.
     this.simTicker.reschedule(Math.round(30000L * Math.random()));
+
+
+    // Generate a random mean ul sinr value between 0 and 40.
+    final int meanUlSinr = (int) Math.round(Math.random() * 40);
+
+    // Generate a random rrc re-establishment failure count between 1 and 9.
+    final long rrcReestablishmentFailures = (long) (1 + Math.random() * 9);
+
+    // Generate a random #ues and throughput
+    final double aveThroughputPerUser = Math.round(Math.random() * 4 * 100.0) / 100.0;
+    long numUEs = 500;
+    if (aveThroughputPerUser > 3.5) {
+      numUEs = numUEs + Math.round(Math.random() * 499);
+    } else if (aveThroughputPerUser > 3 && aveThroughputPerUser <= 3.5) {
+      numUEs = numUEs + Math.round(Math.random() * 750);
+    } else if (aveThroughputPerUser > 2.5 && aveThroughputPerUser <= 3) {
+      numUEs = numUEs + Math.round(Math.random() * 1000);
+    } else if (aveThroughputPerUser > 2 && aveThroughputPerUser <= 2.5) {
+      numUEs = numUEs + Math.round(Math.random() * 1250);
+    } else if (aveThroughputPerUser > 1.5 && aveThroughputPerUser <= 2) {
+      numUEs = numUEs + Math.round(Math.random() * 1500);
+    } else if (aveThroughputPerUser > 1 && aveThroughputPerUser <= 1.5) {
+      numUEs = numUEs + Math.round(Math.random() * 1750);
+    } else if (aveThroughputPerUser <= 1) {
+      numUEs = numUEs + Math.round(Math.random() * 2000);
+    }
+
 
     // Generate a random alert category with a 10% chance of a warning,
     // and a 1% chance of an alert.
@@ -54,23 +83,20 @@ public class ENodeBSimAgent extends AbstractAgent {
 
     // Update this eNodeB's status with the newly computed alert severity.
     final Value oldStatus = this.status.get();
-    final Value newStatus = oldStatus.updated("severity", severity);
+    final Value newStatus = oldStatus.updated("severity", severity).updated("aveThroughputPerUser", aveThroughputPerUser);
     this.status.set(newStatus);
-
-    // Generate a random mean ul sinr value between 0 and 40.
-    final int meanUlSinr = (int) Math.round(Math.random() * 40);
-
-    // Generate a random rrc re-establishment failure count between 1 and 9.
-    final long rrcReestablishmentFailures = (long) (1 + Math.random() * 9);
 
     // Update this eNodeB's ranLatest lane with the simulated data.
     final Value oldRanLatest = this.ranLatest.get();
     final Value newRanLatest = oldRanLatest
         .updated("mean_ul_sinr", meanUlSinr)
         .updated("rrc_re_establishment_failures", rrcReestablishmentFailures)
+        .updated("numUEs", numUEs)
+        .updated("aveThroughputPerUser", aveThroughputPerUser)
         .updated("recorded_time", System.currentTimeMillis());
     this.ranLatest.set(newRanLatest);
     trace(Record.of("simulated RAN sample", newRanLatest));
+
   }
 
   /**
