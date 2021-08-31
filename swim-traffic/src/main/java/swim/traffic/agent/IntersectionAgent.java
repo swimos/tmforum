@@ -69,6 +69,12 @@ public class IntersectionAgent extends AbstractAgent {
   @SwimLane("intersection/history")
   public MapLane<Long, IntersectionTensor> intersectionHistory;
 
+  @SwimLane("intersection/wait")
+  public MapLane<Long, Long> intersectionWaitTimes;
+
+  @SwimLane("intersection/inflow")
+  public MapLane<Long, Long> intersectionInflow;
+
   @SwimResident
   @SwimLane("phase/state")
   public MapLane<Integer, Integer> signalPhaseState = this.<Integer, Integer>mapLane()
@@ -391,6 +397,35 @@ public class IntersectionAgent extends AbstractAgent {
     latency.set(newValue);
   }
 
+  TimerRef simTicker;
+
+  void onSimTick() {
+    simTicker.reschedule(Math.round(30000L * Math.random()));
+
+    final long now = System.currentTimeMillis();
+    final long waitingTime = Math.round(Math.random() * 90);
+    long inflow;
+    if (waitingTime > 60) {
+      inflow = Math.round(Math.random() * 30) + 30;
+    } else if (waitingTime > 30 && waitingTime <= 60) {
+      inflow = Math.round(Math.random() * 15) + 15;
+    } else {
+      inflow = Math.round(Math.random()*15);
+    }
+
+    intersectionWaitTimes.put(now, waitingTime);
+    if (intersectionWaitTimes.size() > 10) {
+      intersectionWaitTimes.drop(intersectionWaitTimes.size() - 10);
+    }
+
+    intersectionInflow.put(now, inflow);
+    if (intersectionInflow.size() > 10) {
+      intersectionInflow.drop(intersectionInflow.size() - 10);
+    }
+
+    info.set(info.get().updatedSlot("wait time", waitingTime).updatedSlot("inflow", inflow));
+  }
+
   @Override
   public void didStart() {
     System.out.println(nodeUri() + " didStart");
@@ -400,6 +435,7 @@ public class IntersectionAgent extends AbstractAgent {
     linkLatency();
     initIntersectionTensor();
     sampleTimer = setTimer(SAMPLE_WINDOW, this::sampleIntersectionTensor);
+    simTicker = setTimer(0, this::onSimTick);
   }
 
   @Override
@@ -411,6 +447,10 @@ public class IntersectionAgent extends AbstractAgent {
     if (sampleTimer != null) {
       sampleTimer.cancel();
       sampleTimer = null;
+    }
+    if (simTicker != null) {
+      simTicker.cancel();
+      simTicker = null;
     }
   }
 

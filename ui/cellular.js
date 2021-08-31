@@ -41,7 +41,7 @@
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
         dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(sinr);
+        dataPointTrait.setY(-sinr);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.sinrModel.appendChildModel(dataPointModel, "" + t);
       }
@@ -49,7 +49,7 @@
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
         dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(rrc);
+        dataPointTrait.setY(-rrc);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.rrcModel.appendChildModel(dataPointModel, "" + t);
       }
@@ -69,7 +69,7 @@
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
         dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(numUEs);
+        dataPointTrait.setY(-numUEs);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.numUEsModel.appendChildModel(dataPointModel, "" + t);
       }
@@ -89,7 +89,7 @@
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
         dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(throughput);
+        dataPointTrait.setY(-throughput);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.throughputModel.appendChildModel(dataPointModel, "" + t);
       }

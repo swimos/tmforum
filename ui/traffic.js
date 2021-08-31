@@ -13,6 +13,10 @@
 
   const INTERSECTION_HISTORY_URI = swim.Uri.parse("intersection/history");
 
+  const INFLOW_URI = swim.Uri.parse("intersection/inflow");
+
+  const WAIT_TIMES_URI = swim.Uri.parse("intersection/wait");
+
   const PHASE_STATE_URI = swim.Uri.parse("phase/state");
 
   const DETECTOR_STATE_URI = swim.Uri.parse("detector/state");
@@ -162,6 +166,74 @@
       dataPointTrait.setY(v);
       dataPointModel.setTrait("dataPoint", dataPointTrait);
       plotModel.appendChildModel(dataPointModel, "" + t);
+    }
+  }
+
+  class TrafficIntersectionWaitTimesDownlink extends swim.MapDownlinkTrait {
+    constructor(plotModel, nodeUri, laneUri) {
+      super();
+      this.plotModel = plotModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+
+    downlinkDidUpdate(key, value) {
+      const t = key.numberValue();
+      const y = value.numberValue(void 0);
+      const dataPointModel = new swim.CompoundModel();
+      const dataPointTrait = new swim.DataPointTrait();
+      dataPointTrait.setX(new swim.DateTime(t));
+      dataPointTrait.setY(-y);
+      dataPointModel.setTrait("dataPoint", dataPointTrait);
+      this.plotModel.appendChildModel(dataPointModel, "" + t);
+
+      const statusTrait = this.plotModel.getTrait(swim.StatusTrait);
+
+      const criticalWait = 90;
+      const alertWait = 60;
+      const warningWait = 30;
+      if (y < warningWait) {
+        statusTrait.setStatusFactor("wait", null);
+      } else if (y < alertWait) {
+        const warning = (y - warningWait) / (alertWait - warningWait);
+        statusTrait.setStatusFactor("wait", swim.StatusFactor.create("Wait", swim.StatusVector.of([swim.Status.warning, warning])));
+      } else {
+        const alert = Math.min((y - alertWait) / (criticalWait - alertWait), 1);
+        statusTrait.setStatusFactor("wait", swim.StatusFactor.create("Wait", swim.StatusVector.of([swim.Status.alert, alert])));
+      }
+    }
+  }
+
+  class TrafficIntersectionInflowDownlink extends swim.MapDownlinkTrait {
+    constructor(plotModel, nodeUri, laneUri) {
+      super();
+      this.plotModel = plotModel;
+      this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+    }
+
+    downlinkDidUpdate(key, value) {
+      const t = key.numberValue();
+      const y = value.numberValue(void 0);
+      const dataPointModel = new swim.CompoundModel();
+      const dataPointTrait = new swim.DataPointTrait();
+      dataPointTrait.setX(new swim.DateTime(t));
+      dataPointTrait.setY(-y);
+      dataPointModel.setTrait("dataPoint", dataPointTrait);
+      this.plotModel.appendChildModel(dataPointModel, "" + t);
+
+      const statusTrait = this.plotModel.getTrait(swim.StatusTrait);
+
+      const criticalInflow = 60;
+      const alertInflow = 30;
+      const warningInflow = 15;
+      if (y < warningInflow) {
+        statusTrait.setStatusFactor("inflow", null);
+      } else if (y < alertInflow) {
+        const warning = (y - warningInflow) / (alertInflow - warningInflow);
+        statusTrait.setStatusFactor("inflow", swim.StatusFactor.create("Inflow", swim.StatusVector.of([swim.Status.warning, warning])));
+      } else {
+        const alert = Math.min((y - alertInflow) / (criticalInflow - alertInflow), 1);
+        statusTrait.setStatusFactor("inflow", swim.StatusFactor.create("Inflow", swim.StatusVector.of([swim.Status.alert, alert])));
+      }
     }
   }
 
@@ -330,6 +402,12 @@
       intersectionHistoryDownlink.driver.setTrait(chart0Model.getTrait("chart"));
       chart0Model.setTrait("downlink", intersectionHistoryDownlink);
 
+      const waitTimeWidget = this.createWaitTimeWidget(entityTrait);
+      entityTrait.appendChildModel(waitTimeWidget, "waitTime");
+
+      const inflowWidget = this.createInflowWidget(entityTrait);
+      entityTrait.appendChildModel(inflowWidget, "inflow");
+
       const infoWidget = this.createInfoWidget(entityTrait);
       entityTrait.appendChildModel(infoWidget, "info");
 
@@ -362,6 +440,76 @@
       const graphTrait = new swim.GraphTrait();
       chartModel.setTrait("graph", graphTrait);
       chartModel.appendChildModel(plotModel, key);
+
+      return chartModel;
+    }
+
+    createWaitTimeWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setTitle("Average Wait Time of Vehicles");
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+
+      const waitTimeModel = this.createWaitTimeGadget(entityTrait);
+      widgetModel.appendChildModel(waitTimeModel, "waitTimeModel");
+
+      return widgetModel;
+    }
+    createWaitTimeGadget(entityTrait) {
+      const plotModel = new swim.CompoundModel();
+      const plotTrait = new swim.LinePlotTrait();
+      plotModel.setTrait("plot", plotTrait);
+      const plotStatus = new swim.StatusTrait();
+      plotModel.setTrait("status", plotStatus);
+      const dataSetTrait = new swim.DataSetTrait();
+      plotModel.setTrait("dataSet", dataSetTrait);
+
+      const chartModel = new swim.CompoundModel();
+      const chartTrait = new swim.ChartTrait();
+      chartModel.setTrait("chart", chartTrait);
+      const graphTrait = new swim.GraphTrait();
+      chartModel.setTrait("graph", graphTrait);
+      chartModel.appendChildModel(plotModel, "waitTime");
+
+      const downlinkTrait = new TrafficIntersectionWaitTimesDownlink(plotModel, entityTrait.uri, WAIT_TIMES_URI);
+      downlinkTrait.driver.setTrait(chartTrait);
+      chartModel.setTrait("downlink", downlinkTrait);
+
+      return chartModel;
+    }
+
+    createInflowWidget(entityTrait) {
+      const widgetModel = new swim.CompoundModel();
+      const widgetTrait = new swim.WidgetTrait();
+      widgetTrait.setTitle("Vehicle Inflow Rate");
+      widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
+      widgetModel.setTrait("widget", widgetTrait);
+
+      const inflowModel = this.createInflowGadget(entityTrait);
+      widgetModel.appendChildModel(inflowModel, "inflowModel");
+
+      return widgetModel;
+    }
+    createInflowGadget(entityTrait) {
+      const plotModel = new swim.CompoundModel();
+      const plotTrait = new swim.LinePlotTrait();
+      plotModel.setTrait("plot", plotTrait);
+      const plotStatus = new swim.StatusTrait();
+      plotModel.setTrait("status", plotStatus);
+      const dataSetTrait = new swim.DataSetTrait();
+      plotModel.setTrait("dataSet", dataSetTrait);
+
+      const chartModel = new swim.CompoundModel();
+      const chartTrait = new swim.ChartTrait();
+      chartModel.setTrait("chart", chartTrait);
+      const graphTrait = new swim.GraphTrait();
+      chartModel.setTrait("graph", graphTrait);
+      chartModel.appendChildModel(plotModel, "inflow");
+
+      const downlinkTrait = new TrafficIntersectionInflowDownlink(plotModel, entityTrait.uri, INFLOW_URI);
+      downlinkTrait.driver.setTrait(chartTrait);
+      chartModel.setTrait("downlink", downlinkTrait);
 
       return chartModel;
     }

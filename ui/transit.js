@@ -31,7 +31,7 @@
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
         dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(speed);
+        dataPointTrait.setY(-speed);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.plotModel.appendChildModel(dataPointModel, "" + t);
       }
@@ -51,24 +51,24 @@
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
         dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(rsrp0);
+        dataPointTrait.setY(-rsrp0);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.plotModel.appendChildModel(dataPointModel, "" + t);
 
-      const rsrpStatusTrait = this.plotModel.getTrait(swim.StatusTrait);
+        const rsrpStatusTrait = this.plotModel.getTrait(swim.StatusTrait);
 
-      const criticalRsrp = -150;
-      const alertRsrp = -120;
-      const warningRsrp = -100;
-      if (rsrp0 < alertRsrp) {
-        const alert = Math.min((rsrp0 - alertRsrp) / (criticalRsrp - alertRsrp), 1);
-        rsrpStatusTrait.setStatusFactor("rsrp", swim.StatusFactor.create("Rsrp", swim.StatusVector.of([swim.Status.alert, alert])));
-      } else if (speed > warningSpeed) {
-        const warning = (rsrp0 - warningRsrp) / (alertRsrp - warningRsrp);
-        rsrpStatusTrait.setStatusFactor("rsrp", swim.StatusFactor.create("Rsrp", swim.StatusVector.of([swim.Status.warning, warning])));
-      } else {
-        rsrpStatusTrait.setStatusFactor("rsrp", null);
-      }
+        const criticalRsrp = -150;
+        const alertRsrp = -120;
+        const warningRsrp = -100;
+        if (rsrp0 < alertRsrp) {
+          const alert = Math.min((rsrp0 - alertRsrp) / (criticalRsrp - alertRsrp), 1);
+          rsrpStatusTrait.setStatusFactor("rsrp", swim.StatusFactor.create("Rsrp", swim.StatusVector.of([swim.Status.alert, alert])));
+        } else if (rsrp0 < warningRsrp) {
+          const warning = (rsrp0 - warningRsrp) / (alertRsrp - warningRsrp);
+          rsrpStatusTrait.setStatusFactor("rsrp", swim.StatusFactor.create("Rsrp", swim.StatusVector.of([swim.Status.warning, warning])));
+        } else {
+          rsrpStatusTrait.setStatusFactor("rsrp", null);
+        }
       }
     }
   }
