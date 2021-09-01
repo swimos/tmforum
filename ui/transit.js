@@ -30,8 +30,8 @@
       if (t !== void 0 && speed !== void 0) {
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
-        dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(-speed);
+        dataPointTrait.x.setState(new swim.DateTime(t));
+        dataPointTrait.y.setState(-speed);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.plotModel.appendChildModel(dataPointModel, "" + t);
       }
@@ -50,8 +50,8 @@
       if (t !== void 0 && rsrp0 !== void 0) {
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
-        dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(-rsrp0);
+        dataPointTrait.x.setState(new swim.DateTime(t));
+        dataPointTrait.y.setState(-rsrp0);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.plotModel.appendChildModel(dataPointModel, "" + t);
 
@@ -97,7 +97,7 @@
     updateRowModel(key, value) {
       const rowModel = this.getOrCreateRowModel(key, value);
       const valueCell = rowModel.getTrait("value");
-      valueCell.setContent(value);
+      valueCell.content.setState(value);
       return rowModel;
     }
     getOrCreateRowModel(key, value) {
@@ -112,7 +112,7 @@
       const rowModel = new swim.CompoundModel();
       const rowTrait = new swim.RowTrait();
       const keyCell = new swim.CellTrait();
-      keyCell.setContent(key);
+      keyCell.content.setState(key);
       const valueCell = new swim.CellTrait();
       rowModel.setTrait("row", rowTrait);
       rowModel.setTrait("key", keyCell);
@@ -185,7 +185,7 @@
       const speedHistoryStatusTrait = speedPlotModel.getTrait(swim.StatusTrait);
 
       const speed = value.get("speed").numberValue(0);
-      speedDialTrait.setValue(speed);
+      speedDialTrait.value.setState(speed);
 
       const statusTrait = nodeModel.getTrait(swim.StatusTrait);
       const criticalSpeed = 75;
@@ -222,19 +222,19 @@
     createInfoTable(entityTrait) {
       const tableModel = new swim.CompoundModel();
       const tableTrait = new swim.TableTrait();
-      tableTrait.setColSpacing(swim.Length.px(12));
+      tableTrait.colSpacing.setState(swim.Length.px(12));
       tableModel.setTrait("table", tableTrait);
 
       const keyColModel = new swim.CompoundModel();
       const keyColTrait = new swim.ColTrait();
       keyColModel.setTrait("col", keyColTrait);
-      keyColTrait.setLayout({key: "key", grow: 1, textColor: swim.Look.mutedColor});
+      keyColTrait.layout.setState({key: "key", grow: 1, textColor: swim.Look.mutedColor});
       tableModel.appendChildModel(keyColModel);
 
       const valueColModel = new swim.CompoundModel();
       const valueColTrait = new swim.ColTrait();
       valueColModel.setTrait("col", valueColTrait);
-      valueColTrait.setLayout({key: "value", grow: 1});
+      valueColTrait.layout.setState({key: "value", grow: 1});
       tableModel.appendChildModel(valueColModel);
 
       const downlinkTrait = new TransitVehicleDownlink(this.agencyName, tableModel, entityTrait.uri, VEHICLE_URI);
@@ -261,7 +261,7 @@
     createSpeedGaugeGadget(entityTrait) {
       const gaugeModel = new swim.CompoundModel();
       const gaugeTrait = new swim.GaugeTrait();
-      gaugeTrait.setTitle("Speed");
+      gaugeTrait.title.setState("Speed");
       gaugeModel.setTrait("gauge", gaugeTrait);
 
       const speedDialModel = new swim.CompoundModel();
@@ -269,9 +269,9 @@
       speedDialTrait.formatLabel = function (value, limit) {
         return value.toFixed() + "mph";
       };
-      //speedDialTrait.setLegend("Speed");
-      speedDialTrait.setLimit(100);
-      speedDialTrait.setValue(0);
+      //speedDialTrait.legend.setState("Speed");
+      speedDialTrait.limit.setState(100);
+      speedDialTrait.value.setState(0);
       speedDialModel.setTrait("dial", speedDialTrait);
       speedDialModel.setTrait("status", new swim.StatusTrait());
       gaugeModel.appendChildModel(speedDialModel, "speed");
@@ -290,6 +290,8 @@
       const chartModel = new swim.CompoundModel();
       const chartTrait = new swim.ChartTrait();
       chartModel.setTrait("chart", chartTrait);
+      const bottomAxisTrait = new swim.BottomAxisTrait();
+      chartModel.setTrait("bottomAxis", bottomAxisTrait);
       const graphTrait = new swim.GraphTrait();
       chartModel.setTrait("graph", graphTrait);
       chartModel.appendChildModel(plotModel, "speed");
@@ -325,6 +327,8 @@
       const chartModel = new swim.CompoundModel();
       const chartTrait = new swim.ChartTrait();
       chartModel.setTrait("chart", chartTrait);
+      const bottomAxisTrait = new swim.BottomAxisTrait();
+      chartModel.setTrait("bottomAxis", bottomAxisTrait);
       const graphTrait = new swim.GraphTrait();
       chartModel.setTrait("graph", graphTrait);
       chartModel.appendChildModel(plotModel, "rsrp");

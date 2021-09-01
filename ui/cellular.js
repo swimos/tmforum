@@ -40,16 +40,16 @@
       if (t !== void 0 && sinr !== void 0) {
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
-        dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(-sinr);
+        dataPointTrait.x.setState(new swim.DateTime(t));
+        dataPointTrait.y.setState(-sinr);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.sinrModel.appendChildModel(dataPointModel, "" + t);
       }
       if (t !== void 0 && sinr !== void 0) {
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
-        dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(-rrc);
+        dataPointTrait.x.setState(new swim.DateTime(t));
+        dataPointTrait.y.setState(-rrc);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.rrcModel.appendChildModel(dataPointModel, "" + t);
       }
@@ -68,8 +68,8 @@
       if (t !== void 0 && numUEs !== void 0) {
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
-        dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(-numUEs);
+        dataPointTrait.x.setState(new swim.DateTime(t));
+        dataPointTrait.y.setState(-numUEs);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.numUEsModel.appendChildModel(dataPointModel, "" + t);
       }
@@ -88,8 +88,8 @@
       if (t !== void 0 && throughput !== void 0) {
         const dataPointModel = new swim.CompoundModel();
         const dataPointTrait = new swim.DataPointTrait();
-        dataPointTrait.setX(new swim.DateTime(t));
-        dataPointTrait.setY(-throughput);
+        dataPointTrait.x.setState(new swim.DateTime(t));
+        dataPointTrait.y.setState(-throughput);
         dataPointModel.setTrait("dataPoint", dataPointTrait);
         this.throughputModel.appendChildModel(dataPointModel, "" + t);
       }
@@ -124,7 +124,7 @@
           const rowModel = this.getOrCreateRowModel(displayKey);
           const valueCell = rowModel.getTrait("value");
           const value = item.toValue().stringValue("");
-          valueCell.setContent(value);
+          valueCell.content.setState(value);
         }
       });
     }
@@ -145,7 +145,7 @@
       }
       const rowModel = this.getOrCreateRowModel(displayKey, value);
       const valueCell = rowModel.getTrait("value");
-      valueCell.setContent(value);
+      valueCell.content.setState(value);
       return rowModel;
     }
     getOrCreateRowModel(key, value) {
@@ -160,7 +160,7 @@
       const rowModel = new swim.CompoundModel();
       const rowTrait = new swim.RowTrait();
       const keyCell = new swim.CellTrait();
-      keyCell.setContent(key);
+      keyCell.content.setState(key);
       const valueCell = new swim.CellTrait();
       rowModel.setTrait("row", rowTrait);
       rowModel.setTrait("key", keyCell);
@@ -184,14 +184,14 @@
           const rowModel = this.getOrCreateRowModel(displayKey);
           const valueCell = rowModel.getTrait("value");
           const value = item.toValue().stringValue("");
-          valueCell.setContent(value);
+          valueCell.content.setState(value);
         }
       });
     }
     updateRowModel(key, value) {
       const rowModel = this.getOrCreateRowModel(key, value);
       const valueCell = rowModel.getTrait("value");
-      valueCell.setContent(value);
+      valueCell.content.setState(value);
       return rowModel;
     }
     getOrCreateRowModel(key, value) {
@@ -206,7 +206,7 @@
       const rowModel = new swim.CompoundModel();
       const rowTrait = new swim.RowTrait();
       const keyCell = new swim.CellTrait();
-      keyCell.setContent(key);
+      keyCell.content.setState(key);
       const valueCell = new swim.CellTrait();
       rowModel.setTrait("row", rowTrait);
       rowModel.setTrait("key", keyCell);
@@ -338,19 +338,19 @@
     createKpiTable(entityTrait) {
       const tableModel = new swim.CompoundModel();
       const tableTrait = new swim.TableTrait();
-      tableTrait.setColSpacing(swim.Length.px(12));
+      tableTrait.colSpacing.setState(swim.Length.px(12));
       tableModel.setTrait("table", tableTrait);
 
       const keyColModel = new swim.CompoundModel();
       const keyColTrait = new swim.ColTrait();
       keyColModel.setTrait("col", keyColTrait);
-      keyColTrait.setLayout({key: "key", grow: 2, textColor: swim.Look.mutedColor});
+      keyColTrait.layout.setState({key: "key", grow: 2, textColor: swim.Look.mutedColor});
       tableModel.appendChildModel(keyColModel);
 
       const valueColModel = new swim.CompoundModel();
       const valueColTrait = new swim.ColTrait();
       valueColModel.setTrait("col", valueColTrait);
-      valueColTrait.setLayout({key: "value", grow: 1});
+      valueColTrait.layout.setState({key: "value", grow: 1});
       tableModel.appendChildModel(valueColModel);
 
       const downlinkTrait = new CellularSiteKpisDownlink(tableModel, entityTrait.uri, KPIS_URI);
@@ -390,6 +390,8 @@
       const chartModel = new swim.CompoundModel();
       const chartTrait = new swim.ChartTrait();
       chartModel.setTrait("chart", chartTrait);
+      const bottomAxisTrait = new swim.BottomAxisTrait();
+      chartModel.setTrait("bottomAxis", bottomAxisTrait);
       const graphTrait = new swim.GraphTrait();
       chartModel.setTrait("graph", graphTrait);
       chartModel.appendChildModel(sinrModel, "sinr");
@@ -425,6 +427,8 @@
       const chartModel = new swim.CompoundModel();
       const chartTrait = new swim.ChartTrait();
       chartModel.setTrait("chart", chartTrait);
+      const bottomAxisTrait = new swim.BottomAxisTrait();
+      chartModel.setTrait("bottomAxis", bottomAxisTrait);
       const graphTrait = new swim.GraphTrait();
       chartModel.setTrait("graph", graphTrait);
       chartModel.appendChildModel(numUEsModel, "numUEs");
@@ -459,6 +463,8 @@
       const chartModel = new swim.CompoundModel();
       const chartTrait = new swim.ChartTrait();
       chartModel.setTrait("chart", chartTrait);
+      const bottomAxisTrait = new swim.BottomAxisTrait();
+      chartModel.setTrait("bottomAxis", bottomAxisTrait);
       const graphTrait = new swim.GraphTrait();
       chartModel.setTrait("graph", graphTrait);
       chartModel.appendChildModel(throughputModel, "throughput");
@@ -485,19 +491,19 @@
     createInfoTable(entityTrait) {
       const tableModel = new swim.CompoundModel();
       const tableTrait = new swim.TableTrait();
-      tableTrait.setColSpacing(swim.Length.px(12));
+      tableTrait.colSpacing.setState(swim.Length.px(12));
       tableModel.setTrait("table", tableTrait);
 
       const keyColModel = new swim.CompoundModel();
       const keyColTrait = new swim.ColTrait();
       keyColModel.setTrait("col", keyColTrait);
-      keyColTrait.setLayout({key: "key", grow: 5, textColor: swim.Look.mutedColor});
+      keyColTrait.layout.setState({key: "key", grow: 5, textColor: swim.Look.mutedColor});
       tableModel.appendChildModel(keyColModel);
 
       const valueColModel = new swim.CompoundModel();
       const valueColTrait = new swim.ColTrait();
       valueColModel.setTrait("col", valueColTrait);
-      valueColTrait.setLayout({key: "value", grow: 1});
+      valueColTrait.layout.setState({key: "value", grow: 1});
       tableModel.appendChildModel(valueColModel);
 
       const downlinkTrait = new CellularSiteInfoDownlink(tableModel, entityTrait.uri, INFO_URI);
@@ -571,14 +577,14 @@
           const rowModel = this.getOrCreateRowModel(key);
           const valueCell = rowModel.getTrait("value");
           const value = item.toValue().stringValue("");
-          valueCell.setContent(value);
+          valueCell.content.setState(value);
         }
       });
     }
     updateRowModel(key, value) {
       const rowModel = this.getOrCreateRowModel(key, value);
       const valueCell = rowModel.getTrait("value");
-      valueCell.setContent(value);
+      valueCell.content.setState(value);
       return rowModel;
     }
     getOrCreateRowModel(key, value) {
@@ -593,7 +599,7 @@
       const rowModel = new swim.CompoundModel();
       const rowTrait = new swim.RowTrait();
       const keyCell = new swim.CellTrait();
-      keyCell.setContent(key);
+      keyCell.content.setState(key);
       const valueCell = new swim.CellTrait();
       rowModel.setTrait("row", rowTrait);
       rowModel.setTrait("key", keyCell);
@@ -614,7 +620,7 @@
       if (key !== void 0) {
         const rowModel = this.getOrCreateRowModel(key.stringValue());
         const valueCell = rowModel.getTrait("value");
-        valueCell.setContent(value.get("severity").numberValue().toFixed(2));
+        valueCell.content.setState(value.get("severity").numberValue().toFixed(2));
       }
     }
     downlinkDidRemove(key, value) {
@@ -625,7 +631,7 @@
     updateRowModel(key, value) {
       const rowModel = this.getOrCreateRowModel(key.stringValue());
       const valueCell = rowModel.getTrait("value");
-      valueCell.setContent(value.get("severity").numberValue().toFixed(2));
+      valueCell.content.setState(value.get("severity").numberValue().toFixed(2));
       return rowModel;
     }
     getOrCreateRowModel(key) {
@@ -640,7 +646,7 @@
       const rowModel = new swim.CompoundModel();
       const rowTrait = new swim.RowTrait();
       const keyCell = new swim.CellTrait();
-      keyCell.setContent("aaa");
+      keyCell.content.setState("aaa");
       const valueCell = new swim.CellTrait();
       rowModel.setTrait("row", rowTrait);
       rowModel.setTrait("key", keyCell);
@@ -725,19 +731,19 @@
     createStatusTable(entityTrait) {
       const tableModel = new swim.CompoundModel();
       const tableTrait = new swim.TableTrait();
-      tableTrait.setColSpacing(swim.Length.px(12));
+      tableTrait.colSpacing.setState(swim.Length.px(12));
       tableModel.setTrait("table", tableTrait);
 
       const keyColModel = new swim.CompoundModel();
       const keyColTrait = new swim.ColTrait();
       keyColModel.setTrait("col", keyColTrait);
-      keyColTrait.setLayout({key: "key", grow: 1, textColor: swim.Look.mutedColor});
+      keyColTrait.layout.setState({key: "key", grow: 1, textColor: swim.Look.mutedColor});
       tableModel.appendChildModel(keyColModel);
 
       const valueColModel = new swim.CompoundModel();
       const valueColTrait = new swim.ColTrait();
       valueColModel.setTrait("col", valueColTrait);
-      valueColTrait.setLayout({key: "value", grow: 1});
+      valueColTrait.layout.setState({key: "value", grow: 1});
       tableModel.appendChildModel(valueColModel);
 
       const downlinkTrait = new CellularStateStatusDownlink(tableModel, entityTrait.uri, STATUS_URI);
@@ -761,16 +767,16 @@
     createAlertsTable(entityTrait) {
       const tableModel = new swim.CompoundModel();
       const tableTrait = new swim.TableTrait();
-      tableTrait.setColSpacing(swim.Length.px(12));
+      tableTrait.colSpacing.setState(swim.Length.px(12));
       tableModel.setTrait("table", tableTrait);
 
       const keyColTrait = new swim.ColTrait();
       tableModel.setTrait("keyCol", keyColTrait);
-      keyColTrait.setLayout({key: "keyCol", grow: 1, textColor: swim.Look.accentColor});
+      keyColTrait.layout.setState({key: "keyCol", grow: 1, textColor: swim.Look.accentColor});
 
       const valColTrait = new swim.ColTrait();
       tableModel.setTrait("valCol", valColTrait);
-      valColTrait.setLayout({key: "valCol", grow:1, textColor: swim.Look.mutedColor});
+      valColTrait.layout.setState({key: "valCol", grow:1, textColor: swim.Look.mutedColor});
 
       const downlinkTrait = new CellularStateAlertsDownlink(tableModel, entityTrait.uri, ALERTS_URI);
       downlinkTrait.driver.setTrait(tableTrait);

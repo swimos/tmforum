@@ -162,8 +162,8 @@
     updatePlot(t, v, plotModel) {
       const dataPointModel = new swim.CompoundModel();
       const dataPointTrait = new swim.DataPointTrait();
-      dataPointTrait.setX(new swim.DateTime(t));
-      dataPointTrait.setY(v);
+      dataPointTrait.x.setState(new swim.DateTime(t));
+      dataPointTrait.y.setState(v);
       dataPointModel.setTrait("dataPoint", dataPointTrait);
       plotModel.appendChildModel(dataPointModel, "" + t);
     }
@@ -181,8 +181,8 @@
       const y = value.numberValue(void 0);
       const dataPointModel = new swim.CompoundModel();
       const dataPointTrait = new swim.DataPointTrait();
-      dataPointTrait.setX(new swim.DateTime(t));
-      dataPointTrait.setY(-y);
+      dataPointTrait.x.setState(new swim.DateTime(t));
+      dataPointTrait.y.setState(-y);
       dataPointModel.setTrait("dataPoint", dataPointTrait);
       this.plotModel.appendChildModel(dataPointModel, "" + t);
 
@@ -215,8 +215,8 @@
       const y = value.numberValue(void 0);
       const dataPointModel = new swim.CompoundModel();
       const dataPointTrait = new swim.DataPointTrait();
-      dataPointTrait.setX(new swim.DateTime(t));
-      dataPointTrait.setY(-y);
+      dataPointTrait.x.setState(new swim.DateTime(t));
+      dataPointTrait.y.setState(-y);
       dataPointModel.setTrait("dataPoint", dataPointTrait);
       this.plotModel.appendChildModel(dataPointModel, "" + t);
 
@@ -293,14 +293,14 @@
           const rowModel = this.getOrCreateRowModel(displayKey);
           const valueCell = rowModel.getTrait("value");
           const value = item.toValue().stringValue("");
-          valueCell.setContent(value);
+          valueCell.content.setState(value);
         }
       });
     }
     updateRowModel(key, value) {
       const rowModel = this.getOrCreateRowModel(key, value);
       const valueCell = rowModel.getTrait("value");
-      valueCell.setContent(value);
+      valueCell.content.setState(value);
       return rowModel;
     }
     getOrCreateRowModel(key, value) {
@@ -315,7 +315,7 @@
       const rowModel = new swim.CompoundModel();
       const rowTrait = new swim.RowTrait();
       const keyCell = new swim.CellTrait();
-      keyCell.setContent(key);
+      keyCell.content.setState(key);
       const valueCell = new swim.CellTrait();
       rowModel.setTrait("row", rowTrait);
       rowModel.setTrait("key", keyCell);
@@ -420,14 +420,14 @@
       widgetTrait.setSubtitle(entityTrait.title.toUpperCase());
       widgetModel.setTrait("widget", widgetTrait);
 
-      const phase0Model = this.createPhaseModel(entityTrait, "phase0");
-      const phase1Model = this.createPhaseModel(entityTrait, "phase1");
+      const phase0Model = this.createPhaseModel(entityTrait, "phase0", false);
+      const phase1Model = this.createPhaseModel(entityTrait, "phase1", true);
       widgetModel.appendChildModel(phase0Model, "phase0");
       widgetModel.appendChildModel(phase1Model, "phase1");
       return widgetModel;
     }
 
-    createPhaseModel(entityTrait, key) {
+    createPhaseModel(entityTrait, key, hasAxis) {
       const plotModel = new swim.CompoundModel();
       const plotTrait = new swim.LinePlotTrait();
       plotModel.setTrait("plot", plotTrait);
@@ -437,6 +437,10 @@
       const chartModel = new swim.CompoundModel();
       const chartTrait = new swim.ChartTrait();
       chartModel.setTrait("chart", chartTrait);
+      if (hasAxis) {
+        const bottomAxisTrait = new swim.BottomAxisTrait();
+        chartModel.setTrait("bottomAxis", bottomAxisTrait);
+      }
       const graphTrait = new swim.GraphTrait();
       chartModel.setTrait("graph", graphTrait);
       chartModel.appendChildModel(plotModel, key);
@@ -468,6 +472,8 @@
       const chartModel = new swim.CompoundModel();
       const chartTrait = new swim.ChartTrait();
       chartModel.setTrait("chart", chartTrait);
+      const bottomAxisTrait = new swim.BottomAxisTrait();
+      chartModel.setTrait("bottomAxis", bottomAxisTrait);
       const graphTrait = new swim.GraphTrait();
       chartModel.setTrait("graph", graphTrait);
       chartModel.appendChildModel(plotModel, "waitTime");
@@ -503,6 +509,8 @@
       const chartModel = new swim.CompoundModel();
       const chartTrait = new swim.ChartTrait();
       chartModel.setTrait("chart", chartTrait);
+      const bottomAxisTrait = new swim.BottomAxisTrait();
+      chartModel.setTrait("bottomAxis", bottomAxisTrait);
       const graphTrait = new swim.GraphTrait();
       chartModel.setTrait("graph", graphTrait);
       chartModel.appendChildModel(plotModel, "inflow");
@@ -529,19 +537,19 @@
     createInfoTable(entityTrait) {
       const tableModel = new swim.CompoundModel();
       const tableTrait = new swim.TableTrait();
-      tableTrait.setColSpacing(swim.Length.px(12));
+      tableTrait.colSpacing.setState(swim.Length.px(12));
       tableModel.setTrait("table", tableTrait);
 
       const keyColModel = new swim.CompoundModel();
       const keyColTrait = new swim.ColTrait();
       keyColModel.setTrait("col", keyColTrait);
-      keyColTrait.setLayout({key: "key", grow: 1, textColor: swim.Look.mutedColor});
+      keyColTrait.layout.setState({key: "key", grow: 1, textColor: swim.Look.mutedColor});
       tableModel.appendChildModel(keyColModel);
 
       const valueColModel = new swim.CompoundModel();
       const valueColTrait = new swim.ColTrait();
       valueColModel.setTrait("col", valueColTrait);
-      valueColTrait.setLayout({key: "value", grow: 2});
+      valueColTrait.layout.setState({key: "value", grow: 2});
       tableModel.appendChildModel(valueColModel);
 
       const downlinkTrait = new TrafficIntersectionInfoDownlink(tableModel, entityTrait.uri, INFO_URI);
@@ -601,8 +609,8 @@
       /*sliceTrait.formatLabel = function (value) {
         return value + "";
       };*/
-      sliceTrait.setValue(sliceValue);
-      sliceTrait.setLegend(legend + " " + sliceValue);
+      sliceTrait.value.setState(sliceValue);
+      sliceTrait.legend.setState(legend + " " + sliceValue);
     }
   }
 
