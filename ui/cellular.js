@@ -615,7 +615,7 @@
     updateNorthSiteSector1(sectorModel, lng, lat, siteRotation, t, dt) {
       const unfocusRadialOffset = 0.0041;
       const unfocusBeamLength = 0.004;
-      const unfocusBeamWidth = 0.002;
+      const unfocusBeamWidth = 0.003;
 
       const focusRadialOffset = 0.0021;
       const focusBeamLength = 0.002;
@@ -623,9 +623,6 @@
 
       const u = this.beamPhase(t);
       const v = this.beamPhase(t - dt);
-      const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
-      const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
-      const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
 
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
       const statusTrait = sectorModel.getTrait(swim.StatusTrait);
@@ -634,20 +631,25 @@
       } else if (u === 1 && v !== 1) {
         statusTrait.setStatusFactor("coverage", null);
       }
-      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+      if (u !== v || locationTrait.geographic === null) {
+        const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
+        const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
+        const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
+        locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+      }
     }
     updateNorthSiteSector2(sectorModel, lng, lat, siteRotation, t, dt) {
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
-      const radialOffset = 0.0041;
-      const beamLength = 0.004;
-      const beamWidth = 0.002;
-      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 120, radialOffset, beamLength, beamWidth));
+      const radialOffset = 0.0051;
+      const beamLength = 0.005;
+      const beamWidth = 0.0025;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 135, radialOffset, beamLength, beamWidth));
     }
     updateNorthSiteSector3(sectorModel, lng, lat, siteRotation, t, dt) {
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
-      const radialOffset = 0.0041;
-      const beamLength = 0.004;
-      const beamWidth = 0.0025;
+      const radialOffset = 0.0051;
+      const beamLength = 0.005;
+      const beamWidth = 0.003;
       locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 240, radialOffset, beamLength, beamWidth));
     }
     updateEastSite(nodeModel, t, dt) {
@@ -676,7 +678,7 @@
     updateEastSiteSector1(sectorModel, lng, lat, siteRotation, t, dt) {
       const unfocusRadialOffset = 0.0041;
       const unfocusBeamLength = 0.004;
-      const unfocusBeamWidth = 0.002;
+      const unfocusBeamWidth = 0.003;
 
       const focusRadialOffset = 0.00251;
       const focusBeamLength = 0.0025;
@@ -684,9 +686,6 @@
 
       const u = this.beamPhase(t);
       const v = this.beamPhase(t - dt);
-      const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
-      const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
-      const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
 
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
       const statusTrait = sectorModel.getTrait(swim.StatusTrait);
@@ -695,21 +694,26 @@
       } else if (u === 1 && v !== 1) {
         statusTrait.setStatusFactor("coverage", null);
       }
-      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+      if (u !== v || locationTrait.geographic === null) {
+        const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
+        const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
+        const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
+        locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+      }
     }
     updateEastSiteSector2(sectorModel, lng, lat, siteRotation, t, dt) {
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
-      const radialOffset = 0.0041;
-      const beamLength = 0.004;
-      const beamWidth = 0.002;
-      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 140, radialOffset, beamLength, beamWidth));
+      const radialOffset = 0.0061;
+      const beamLength = 0.006;
+      const beamWidth = 0.0025;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 145, radialOffset, beamLength, beamWidth));
     }
     updateEastSiteSector3(sectorModel, lng, lat, siteRotation, t, dt) {
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
-      const radialOffset = 0.0041;
-      const beamLength = 0.004;
-      const beamWidth = 0.002;
-      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 220, radialOffset, beamLength, beamWidth));
+      const radialOffset = 0.0051;
+      const beamLength = 0.005;
+      const beamWidth = 0.0025;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 190, radialOffset, beamLength, beamWidth));
     }
     updateSouthSite(nodeModel, t, dt) {
       const entityTrait = nodeModel.getTrait(swim.EntityTrait);
@@ -737,7 +741,7 @@
     updateSouthSiteSector1(sectorModel, lng, lat, siteRotation, t, dt) {
       const unfocusRadialOffset = 0.0041;
       const unfocusBeamLength = 0.004;
-      const unfocusBeamWidth = 0.002;
+      const unfocusBeamWidth = 0.003;
 
       const focusRadialOffset = 0.00251;
       const focusBeamLength = 0.0025;
@@ -745,9 +749,6 @@
 
       const u = this.beamPhase(t);
       const v = this.beamPhase(t - dt);
-      const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
-      const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
-      const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
 
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
       const statusTrait = sectorModel.getTrait(swim.StatusTrait);
@@ -756,21 +757,26 @@
       } else if (u === 1 && v !== 1) {
         statusTrait.setStatusFactor("coverage", null);
       }
-      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+      if (u !== v || locationTrait.geographic === null) {
+        const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
+        const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
+        const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
+        locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+      }
     }
     updateSouthSiteSector2(sectorModel, lng, lat, siteRotation, t, dt) {
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
-      const radialOffset = 0.0041;
-      const beamLength = 0.004;
-      const beamWidth = 0.002;
-      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 140, radialOffset, beamLength, beamWidth));
+      const radialOffset = 0.0051;
+      const beamLength = 0.005;
+      const beamWidth = 0.003;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 130, radialOffset, beamLength, beamWidth));
     }
     updateSouthSiteSector3(sectorModel, lng, lat, siteRotation, t, dt) {
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
-      const radialOffset = 0.0041;
-      const beamLength = 0.004;
-      const beamWidth = 0.002;
-      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 220, radialOffset, beamLength, beamWidth));
+      const radialOffset = 0.0051;
+      const beamLength = 0.005;
+      const beamWidth = 0.0025;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 200, radialOffset, beamLength, beamWidth));
     }
     updateWestSite(nodeModel, t, dt) {
       const entityTrait = nodeModel.getTrait(swim.EntityTrait);
@@ -798,7 +804,7 @@
     updateWestSiteSector1(sectorModel, lng, lat, siteRotation, t, dt) {
       const unfocusRadialOffset = 0.0041;
       const unfocusBeamLength = 0.004;
-      const unfocusBeamWidth = 0.002;
+      const unfocusBeamWidth = 0.003;
 
       const focusRadialOffset = 0.0021;
       const focusBeamLength = 0.002;
@@ -806,9 +812,6 @@
 
       const u = this.beamPhase(t);
       const v = this.beamPhase(t - dt);
-      const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
-      const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
-      const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
 
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
       const statusTrait = sectorModel.getTrait(swim.StatusTrait);
@@ -817,21 +820,26 @@
       } else if (u === 1 && v !== 1) {
         statusTrait.setStatusFactor("coverage", null);
       }
-      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+      if (u !== v || locationTrait.geographic === null) {
+        const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
+        const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
+        const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
+        locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+      }
     }
     updateWestSiteSector2(sectorModel, lng, lat, siteRotation, t, dt) {
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
-      const radialOffset = 0.0041;
-      const beamLength = 0.004;
-      const beamWidth = 0.0025;
-      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 120, radialOffset, beamLength, beamWidth));
+      const radialOffset = 0.0061;
+      const beamLength = 0.006;
+      const beamWidth = 0.004;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 125, radialOffset, beamLength, beamWidth));
     }
     updateWestSiteSector3(sectorModel, lng, lat, siteRotation, t, dt) {
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
-      const radialOffset = 0.0041;
-      const beamLength = 0.004;
-      const beamWidth = 0.0025;
-      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 240, radialOffset, beamLength, beamWidth));
+      const radialOffset = 0.0061;
+      const beamLength = 0.006;
+      const beamWidth = 0.004;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 220, radialOffset, beamLength, beamWidth));
     }
 
     createCoverageEllipse(lng, lat, r, dr, rx, ry) {
