@@ -20,11 +20,16 @@
   const MIN_SITE_ZOOM = 8;
 
   const cellTowerIcon = swim.VectorIcon.create(24, 24, "M15.4,14.1L15.4,14.1L15.4,14.1L12.7,4L11.3,4L8.6,14.1L7,20L9.1,20L12,17.3L14.9,20L17,20L15.4,14.1ZM9.9,15.3L10.9,16.3L9.1,18.1L9.9,15.3ZM14.2,15.3L14.9,18.1L13.1,16.3L14.2,15.3ZM10.3,13.7L11,10.9L13,10.9L13.8,13.7L12,15.3L10.3,13.7Z");
-  const cellTowerIconSize = 24;
+  const cellTowerIconSize = 32;
 
   const subscriberIcon = swim.VectorIcon.create(24, 24, "M15,4C16.1,4,17,4.9,17,6L17,18C17,19.1,16.1,20,15,20L9,20C7.9,20,7,19.1,7,18L7,6C7,4.9,7.9,4,9,4L15,4ZM12,17.5C11.4,17.5,11,17.9,11,18.5C11,19.1,11.4,19.5,12,19.5C12.6,19.5,13,19.1,13,18.5C13,17.9,12.6,17.5,12,17.5ZM15,7L9,7L9,17L15,17L15,7ZM13.5,5L10.5,5C10.2,5,10,5.2,10,5.5C10,5.7,10.2,5.9,10.4,6L10.5,6L13.5,6C13.8,6,14,5.8,14,5.5C14,5.3,13.8,5.1,13.6,5L13.5,5Z");
   const subscriberIconSize = 24;
 
+  const BEAM_CYCLE_TIME = 600000;
+  const BEAM_FOCUS_START = 15000;
+  const BEAM_FOCUS_END = 30000;
+  const BEAM_UNFOCUS_START = 45000;
+  const BEAM_UNFOCUS_END = 60000;
 
   class CellularSiteRanHistoryDownlink extends swim.MapDownlinkTrait {
     constructor(sinrModel, rrcModel, nodeUri, laneUri) {
@@ -159,9 +164,9 @@
     createRowModel(key) {
       const rowModel = new swim.CompoundModel();
       const rowTrait = new swim.RowTrait();
-      const keyCell = new swim.CellTrait();
+      const keyCell = new swim.TextCellTrait();
       keyCell.content.setState(key);
-      const valueCell = new swim.CellTrait();
+      const valueCell = new swim.TextCellTrait();
       rowModel.setTrait("row", rowTrait);
       rowModel.setTrait("key", keyCell);
       rowModel.setTrait("value", valueCell);
@@ -205,9 +210,9 @@
     createRowModel(key) {
       const rowModel = new swim.CompoundModel();
       const rowTrait = new swim.RowTrait();
-      const keyCell = new swim.CellTrait();
+      const keyCell = new swim.TextCellTrait();
       keyCell.content.setState(key);
-      const valueCell = new swim.CellTrait();
+      const valueCell = new swim.TextCellTrait();
       rowModel.setTrait("row", rowTrait);
       rowModel.setTrait("key", keyCell);
       rowModel.setTrait("value", valueCell);
@@ -220,6 +225,7 @@
     constructor(nodeUri, laneUri, metaHostUri) {
       super(metaHostUri);
       this.downlink.nodeUri(nodeUri).laneUri(laneUri);
+      this.coverageFrame = void 0;
     }
     initNodeModel(nodeModel) {
       const entityTrait = nodeModel.getTrait(swim.EntityTrait);
@@ -250,6 +256,15 @@
       const infoWidget = this.createInfoWidget(entityTrait);
       entityTrait.appendChildModel(infoWidget, "info");
 
+      if (entityTrait.uri.toString() === "/site/ABAB") {
+        this.initNorthSite(nodeModel);
+      } else if (entityTrait.uri.toString() === "/site/ABAD") {
+        this.initEastSite(nodeModel);
+      } else if (entityTrait.uri.toString() === "/site/ABAA") {
+        this.initSouthSite(nodeModel);
+      } else if (entityTrait.uri.toString() === "/site/ABAC") {
+        this.initWestSite(nodeModel);
+      }
     }
     updateNodeModel(nodeModel, value) {
       const entityTrait = nodeModel.getTrait(swim.EntityTrait);
@@ -322,6 +337,16 @@
         throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.alert, throughput])));
         numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.alert, throughput])));
       }
+
+      if (entityTrait.uri.toString() === "/site/ABAB") {
+        this.updateNorthSite(nodeModel);
+      } else if (entityTrait.uri.toString() === "/site/ABAD") {
+        this.updateEastSite(nodeModel);
+      } else if (entityTrait.uri.toString() === "/site/ABAA") {
+        this.updateSouthSite(nodeModel);
+      } else if (entityTrait.uri.toString() === "/site/ABAC") {
+        this.updateWestSite(nodeModel);
+      }
     }
     createKpiWidget(entityTrait) {
       const widgetModel = new swim.CompoundModel();
@@ -341,17 +366,13 @@
       tableTrait.colSpacing.setState(swim.Length.px(12));
       tableModel.setTrait("table", tableTrait);
 
-      const keyColModel = new swim.CompoundModel();
       const keyColTrait = new swim.ColTrait();
-      keyColModel.setTrait("col", keyColTrait);
       keyColTrait.layout.setState({key: "key", grow: 2, textColor: swim.Look.mutedColor});
-      tableModel.appendChildModel(keyColModel);
+      tableModel.setTrait("key", keyColTrait);
 
-      const valueColModel = new swim.CompoundModel();
       const valueColTrait = new swim.ColTrait();
-      valueColModel.setTrait("col", valueColTrait);
       valueColTrait.layout.setState({key: "value", grow: 1});
-      tableModel.appendChildModel(valueColModel);
+      tableModel.setTrait("value", valueColTrait);
 
       const downlinkTrait = new CellularSiteKpisDownlink(tableModel, entityTrait.uri, KPIS_URI);
       downlinkTrait.driver.setTrait(tableTrait);
@@ -494,17 +515,13 @@
       tableTrait.colSpacing.setState(swim.Length.px(12));
       tableModel.setTrait("table", tableTrait);
 
-      const keyColModel = new swim.CompoundModel();
       const keyColTrait = new swim.ColTrait();
-      keyColModel.setTrait("col", keyColTrait);
       keyColTrait.layout.setState({key: "key", grow: 5, textColor: swim.Look.mutedColor});
-      tableModel.appendChildModel(keyColModel);
+      tableModel.setTrait("key", keyColTrait);
 
-      const valueColModel = new swim.CompoundModel();
       const valueColTrait = new swim.ColTrait();
-      valueColModel.setTrait("col", valueColTrait);
       valueColTrait.layout.setState({key: "value", grow: 1});
-      tableModel.appendChildModel(valueColModel);
+      tableModel.setTrait("value", valueColTrait);
 
       const downlinkTrait = new CellularSiteInfoDownlink(tableModel, entityTrait.uri, INFO_URI);
       downlinkTrait.driver.setTrait(tableTrait);
@@ -512,8 +529,381 @@
 
       return tableModel;
     }
+
+    initDemoSite(nodeModel) {
+      const entityTrait = nodeModel.getTrait(swim.EntityTrait);
+
+      const districtTrait = new swim.DistrictTrait();
+      districtTrait.setBoundary(swim.GeoBox.undefined());
+      nodeModel.setTrait("district", districtTrait);
+
+      const subdistricts = new swim.NodeGroup(this.metaHostUri);
+      subdistricts.setTrait("status", new swim.StatusTrait());
+      nodeModel.setChildModel("subdistricts", subdistricts);
+      entityTrait.subentities.child = false;
+      entityTrait.subentities.setModel(subdistricts);
+
+      const sector1Path = entityTrait.uri + "/sector/1";
+      const sector1Model = this.createNodeModel(sector1Path);
+      sector1Model.setTrait("location", new swim.LocationTrait());
+      subdistricts.appendChildModel(sector1Model, sector1Path);
+
+      const sector2Path = entityTrait.uri + "/sector/2";
+      const sector2Model = this.createNodeModel(sector2Path);
+      sector2Model.setTrait("location", new swim.LocationTrait());
+      subdistricts.appendChildModel(sector2Model, sector2Path);
+
+      const sector3Path = entityTrait.uri + "/sector/3";
+      const sector3Model = this.createNodeModel(sector3Path);
+      sector3Model.setTrait("location", new swim.LocationTrait());
+      subdistricts.appendChildModel(sector3Model, sector3Path);
+
+      const sector4Path = entityTrait.uri + "/sector/4";
+      const sector4Model = this.createNodeModel(sector4Path);
+      sector4Model.setTrait("location", new swim.LocationTrait());
+      subdistricts.appendChildModel(sector4Model, sector4Path);
+    }
+    initNorthSite(nodeModel) {
+      //console.log("CellularSiteGroup.initNorthSite");
+      this.initDemoSite(nodeModel);
+    }
+    initEastSite(nodeModel) {
+      //console.log("CellularSiteGroup.initEastSite");
+      this.initDemoSite(nodeModel);
+    }
+    initSouthSite(nodeModel) {
+      //console.log("CellularSiteGroup.initSouthSite");
+      this.initDemoSite(nodeModel);
+    }
+    initWestSite(nodeModel) {
+      //console.log("CellularSiteGroup.initWestSite");
+      this.initDemoSite(nodeModel);
+    }
+
+    updateDemoSite(nodeModel) {
+      const {lng, lat} = nodeModel.getTrait(swim.LocationTrait).geographic.geometry;
+
+      const districtTrait = nodeModel.getTrait(swim.DistrictTrait);
+      if (isFinite(lng) && isFinite(lat)) {
+        districtTrait.setBoundary(new swim.GeoBox(lng - 1, lat - 1, lng + 1, lat + 1));
+      } else {
+        districtTrait.setBoundary(swim.GeoBox.undefined());
+      }
+    }
+    updateNorthSite(nodeModel, t, dt) {
+      const entityTrait = nodeModel.getTrait(swim.EntityTrait);
+      //console.log("CellularSiteGroup.updateNorthSite " + entityTrait.uri);
+      this.updateDemoSite(nodeModel);
+
+      const subdistricts = nodeModel.getChildModel("subdistricts");
+      const sector1Model = subdistricts.getChildModel(entityTrait.uri + "/sector/1");
+      const sector2Model = subdistricts.getChildModel(entityTrait.uri + "/sector/2");
+      const sector3Model = subdistricts.getChildModel(entityTrait.uri + "/sector/3");
+
+      const {lng, lat} = nodeModel.getTrait(swim.LocationTrait).geographic.geometry;
+      const siteRotation = -115;
+      if (t !== void 0) { // animate
+        this.updateNorthSiteSector1(sector1Model, lng, lat, siteRotation, t, dt);
+      } else {
+        t = performance.now();
+        dt = 0;
+        this.updateNorthSiteSector1(sector1Model, lng, lat, siteRotation, t, dt);
+        this.updateNorthSiteSector2(sector2Model, lng, lat, siteRotation, t, dt);
+        this.updateNorthSiteSector3(sector3Model, lng, lat, siteRotation, t, dt);
+      }
+    }
+    updateNorthSiteSector1(sectorModel, lng, lat, siteRotation, t, dt) {
+      const unfocusRadialOffset = 0.004;
+      const unfocusBeamLength = 0.004;
+      const unfocusBeamWidth = 0.002;
+
+      const focusRadialOffset = 0.002;
+      const focusBeamLength = 0.002;
+      const focusBeamWidth = 0.001;
+
+      const u = this.beamPhase(t);
+      const v = this.beamPhase(t - dt);
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
+      const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
+      const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+
+      const statusTrait = sectorModel.getTrait(swim.StatusTrait);
+      if (u === 0 && v !== 0 || dt === 0) {
+        statusTrait.setStatusFactor("coverage", swim.StatusFactor.create("Coverage", swim.StatusVector.of([swim.Status.warning, 1])));
+      } else if (u === 1 && v !== 1) {
+        statusTrait.setStatusFactor("coverage", null);
+      }
+    }
+    updateNorthSiteSector2(sectorModel, lng, lat, siteRotation, t, dt) {
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = 0.004;
+      const beamLength = 0.004;
+      const beamWidth = 0.002;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 120, radialOffset, beamLength, beamWidth));
+    }
+    updateNorthSiteSector3(sectorModel, lng, lat, siteRotation, t, dt) {
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = 0.004;
+      const beamLength = 0.004;
+      const beamWidth = 0.0025;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 240, radialOffset, beamLength, beamWidth));
+    }
+    updateEastSite(nodeModel, t, dt) {
+      const entityTrait = nodeModel.getTrait(swim.EntityTrait);
+      //console.log("CellularSiteGroup.updateEastSite " + entityTrait.uri);
+      this.updateDemoSite(nodeModel);
+
+      const subdistricts = nodeModel.getChildModel("subdistricts");
+      const sector1Model = subdistricts.getChildModel(entityTrait.uri + "/sector/1");
+      const sector2Model = subdistricts.getChildModel(entityTrait.uri + "/sector/2");
+      const sector3Model = subdistricts.getChildModel(entityTrait.uri + "/sector/3");
+      const sector4Model = subdistricts.getChildModel(entityTrait.uri + "/sector/4");
+
+      const {lng, lat} = nodeModel.getTrait(swim.LocationTrait).geographic.geometry;
+      const siteRotation = -182;
+      if (t !== void 0) { // animate
+        this.updateEastSiteSector1(sector1Model, lng, lat, siteRotation, t, dt);
+      } else {
+        t = performance.now();
+        dt = 0;
+        this.updateEastSiteSector1(sector1Model, lng, lat, siteRotation, t, dt);
+        this.updateEastSiteSector2(sector2Model, lng, lat, siteRotation, t, dt);
+        this.updateEastSiteSector3(sector3Model, lng, lat, siteRotation, t, dt);
+      }
+    }
+    updateEastSiteSector1(sectorModel, lng, lat, siteRotation, t, dt) {
+      const unfocusRadialOffset = 0.004;
+      const unfocusBeamLength = 0.004;
+      const unfocusBeamWidth = 0.002;
+
+      const focusRadialOffset = 0.0025;
+      const focusBeamLength = 0.0025;
+      const focusBeamWidth = 0.001;
+
+      const u = this.beamPhase(t);
+      const v = this.beamPhase(t - dt);
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
+      const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
+      const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+
+      const statusTrait = sectorModel.getTrait(swim.StatusTrait);
+      if (u === 0 && v !== 0 || dt === 0) {
+        statusTrait.setStatusFactor("coverage", swim.StatusFactor.create("Coverage", swim.StatusVector.of([swim.Status.warning, 1])));
+      } else if (u === 1 && v !== 1) {
+        statusTrait.setStatusFactor("coverage", null);
+      }
+    }
+    updateEastSiteSector2(sectorModel, lng, lat, siteRotation, t, dt) {
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = 0.004;
+      const beamLength = 0.004;
+      const beamWidth = 0.002;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 140, radialOffset, beamLength, beamWidth));
+    }
+    updateEastSiteSector3(sectorModel, lng, lat, siteRotation, t, dt) {
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = 0.004;
+      const beamLength = 0.004;
+      const beamWidth = 0.002;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 220, radialOffset, beamLength, beamWidth));
+    }
+    updateSouthSite(nodeModel, t, dt) {
+      const entityTrait = nodeModel.getTrait(swim.EntityTrait);
+      //console.log("CellularSiteGroup.updateSouthSite " + entityTrait.uri);
+      this.updateDemoSite(nodeModel);
+
+      const subdistricts = nodeModel.getChildModel("subdistricts");
+      const sector1Model = subdistricts.getChildModel(entityTrait.uri + "/sector/1");
+      const sector2Model = subdistricts.getChildModel(entityTrait.uri + "/sector/2");
+      const sector3Model = subdistricts.getChildModel(entityTrait.uri + "/sector/3");
+      const sector4Model = subdistricts.getChildModel(entityTrait.uri + "/sector/4");
+
+      const {lng, lat} = nodeModel.getTrait(swim.LocationTrait).geographic.geometry;
+      const siteRotation = 122;
+      if (t !== void 0) { // animate
+        this.updateSouthSiteSector1(sector1Model, lng, lat, siteRotation, t, dt);
+      } else {
+        t = performance.now();
+        dt = 0;
+        this.updateSouthSiteSector1(sector1Model, lng, lat, siteRotation, t, dt);
+        this.updateSouthSiteSector2(sector2Model, lng, lat, siteRotation, t, dt);
+        this.updateSouthSiteSector3(sector3Model, lng, lat, siteRotation, t, dt);
+      }
+    }
+    updateSouthSiteSector1(sectorModel, lng, lat, siteRotation, t, dt) {
+      const unfocusRadialOffset = 0.004;
+      const unfocusBeamLength = 0.004;
+      const unfocusBeamWidth = 0.002;
+
+      const focusRadialOffset = 0.0025;
+      const focusBeamLength = 0.0025;
+      const focusBeamWidth = 0.001;
+
+      const u = this.beamPhase(t);
+      const v = this.beamPhase(t - dt);
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
+      const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
+      const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+
+      const statusTrait = sectorModel.getTrait(swim.StatusTrait);
+      if (u === 0 && v !== 0 || dt === 0) {
+        statusTrait.setStatusFactor("coverage", swim.StatusFactor.create("Coverage", swim.StatusVector.of([swim.Status.warning, 1])));
+      } else if (u === 1 && v !== 1) {
+        statusTrait.setStatusFactor("coverage", null);
+      }
+    }
+    updateSouthSiteSector2(sectorModel, lng, lat, siteRotation, t, dt) {
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = 0.004;
+      const beamLength = 0.004;
+      const beamWidth = 0.002;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 140, radialOffset, beamLength, beamWidth));
+    }
+    updateSouthSiteSector3(sectorModel, lng, lat, siteRotation, t, dt) {
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = 0.004;
+      const beamLength = 0.004;
+      const beamWidth = 0.002;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 220, radialOffset, beamLength, beamWidth));
+    }
+    updateWestSite(nodeModel, t, dt) {
+      const entityTrait = nodeModel.getTrait(swim.EntityTrait);
+      //console.log("CellularSiteGroup.updateWestSite " + entityTrait.uri);
+      this.updateDemoSite(nodeModel);
+
+      const subdistricts = nodeModel.getChildModel("subdistricts");
+      const sector1Model = subdistricts.getChildModel(entityTrait.uri + "/sector/1");
+      const sector2Model = subdistricts.getChildModel(entityTrait.uri + "/sector/2");
+      const sector3Model = subdistricts.getChildModel(entityTrait.uri + "/sector/3");
+      const sector4Model = subdistricts.getChildModel(entityTrait.uri + "/sector/4");
+
+      const {lng, lat} = nodeModel.getTrait(swim.LocationTrait).geographic.geometry;
+      const siteRotation = 17;
+      if (t !== void 0) { // animate
+        this.updateWestSiteSector1(sector1Model, lng, lat, siteRotation, t, dt);
+      } else {
+        t = performance.now();
+        dt = 0;
+        this.updateWestSiteSector1(sector1Model, lng, lat, siteRotation, t, dt);
+        this.updateWestSiteSector2(sector2Model, lng, lat, siteRotation, t, dt);
+        this.updateWestSiteSector3(sector3Model, lng, lat, siteRotation, t, dt);
+      }
+    }
+    updateWestSiteSector1(sectorModel, lng, lat, siteRotation, t, dt) {
+      const unfocusRadialOffset = 0.004;
+      const unfocusBeamLength = 0.004;
+      const unfocusBeamWidth = 0.002;
+
+      const focusRadialOffset = 0.002;
+      const focusBeamLength = 0.002;
+      const focusBeamWidth = 0.001;
+
+      const u = this.beamPhase(t);
+      const v = this.beamPhase(t - dt);
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = focusRadialOffset * u + unfocusRadialOffset * (1 - u);
+      const beamLength = focusBeamLength * u + unfocusBeamLength * (1 - u);
+      const beamWidth = focusBeamWidth * u + unfocusBeamWidth * (1 - u);
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation, radialOffset, beamLength, beamWidth));
+
+      const statusTrait = sectorModel.getTrait(swim.StatusTrait);
+      if (u === 0 && v !== 0 || dt === 0) {
+        statusTrait.setStatusFactor("coverage", swim.StatusFactor.create("Coverage", swim.StatusVector.of([swim.Status.warning, 1])));
+      } else if (u === 1 && v !== 1) {
+        statusTrait.setStatusFactor("coverage", null);
+      }
+    }
+    updateWestSiteSector2(sectorModel, lng, lat, siteRotation, t, dt) {
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = 0.004;
+      const beamLength = 0.004;
+      const beamWidth = 0.0025;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 120, radialOffset, beamLength, beamWidth));
+    }
+    updateWestSiteSector3(sectorModel, lng, lat, siteRotation, t, dt) {
+      const locationTrait = sectorModel.getTrait(swim.LocationTrait);
+      const radialOffset = 0.004;
+      const beamLength = 0.004;
+      const beamWidth = 0.0025;
+      locationTrait.setGeographic(this.createCoverageEllipse(lng, lat, siteRotation + 240, radialOffset, beamLength, beamWidth));
+    }
+
+    createCoverageEllipse(lng, lat, r, dr, rx, ry) {
+      r = r * Math.PI / 180;
+      const cx = lng + dr * Math.cos(r);
+      const cy = lat + dr * Math.sin(r);
+
+      const sampleCount = 40;
+      const geometry = new Array(sampleCount + 1);
+      const da = 2 * Math.PI / sampleCount;
+      let a = 0;
+      for (let i = 0; i <= sampleCount; i += 1) {
+        const ex = rx * Math.cos(a);
+        const ey = ry * Math.sin(a);
+        const px = ex * Math.cos(r) - ey * Math.sin(r);
+        const py = ex * Math.sin(r) + ey * Math.cos(r);
+        geometry[i] = new swim.GeoPoint(cx + px, cy + py);
+        a += da;
+      }
+
+      return swim.GeographicArea.fromInit({
+        geometry: geometry,
+      });
+    }
+
+    beamPhase(t) {
+      const cyclePhase = Math.round(t) % BEAM_CYCLE_TIME;
+      let phase;
+      if (cyclePhase < BEAM_FOCUS_START) {
+        phase = 0;
+      } else if (cyclePhase < BEAM_FOCUS_END) {
+        phase = (cyclePhase - BEAM_FOCUS_START) / (BEAM_FOCUS_END - BEAM_FOCUS_START);
+      } else if (cyclePhase < BEAM_UNFOCUS_START) {
+        phase = 1;
+      } else if (cyclePhase < BEAM_UNFOCUS_END) {
+        phase = 1 - (cyclePhase - BEAM_UNFOCUS_START) / (BEAM_UNFOCUS_END - BEAM_UNFOCUS_START);
+      } else {
+        phase = 0;
+      }
+      return swim.Easing.quadInOut(phase);
+    }
+
+    animateCoverage(t0, t) {
+      const dt = t - t0;
+      const northSiteModel = this.getChildModel("/site/ABAB");
+      if (northSiteModel !== null) {
+        this.updateNorthSite(northSiteModel, t, dt);
+      }
+      const eastSiteModel = this.getChildModel("/site/ABAD");
+      if (eastSiteModel !== null) {
+        this.updateEastSite(eastSiteModel, t, dt);
+      }
+      const southSiteModel = this.getChildModel("/site/ABAA");
+      if (southSiteModel !== null) {
+        this.updateSouthSite(southSiteModel, t, dt);
+      }
+      const westSiteModel = this.getChildModel("/site/ABAC");
+      if (westSiteModel !== null) {
+        this.updateWestSite(westSiteModel, t, dt);
+      }
+      this.coverageFrame = requestAnimationFrame(this.animateCoverage.bind(this, t));
+    }
+
+    onStartConsuming() {
+      super.onStartConsuming();
+      this.coverageFrame = requestAnimationFrame(this.animateCoverage.bind(this, performance.now()));
+    }
+
     onStopConsuming() {
       super.onStopConsuming();
+      cancelAnimationFrame(this.coverageFrame);
+      this.coverageFrame = void 0;
       this.removeAll();
     }
   }
@@ -598,9 +988,9 @@
     createRowModel(key) {
       const rowModel = new swim.CompoundModel();
       const rowTrait = new swim.RowTrait();
-      const keyCell = new swim.CellTrait();
+      const keyCell = new swim.TextCellTrait();
       keyCell.content.setState(key);
-      const valueCell = new swim.CellTrait();
+      const valueCell = new swim.TextCellTrait();
       rowModel.setTrait("row", rowTrait);
       rowModel.setTrait("key", keyCell);
       rowModel.setTrait("value", valueCell);
@@ -645,9 +1035,9 @@
     createRowModel(key) {
       const rowModel = new swim.CompoundModel();
       const rowTrait = new swim.RowTrait();
-      const keyCell = new swim.CellTrait();
-      keyCell.content.setState("aaa");
-      const valueCell = new swim.CellTrait();
+      const keyCell = new swim.TextCellTrait();
+      keyCell.content.setState(key);
+      const valueCell = new swim.TextCellTrait();
       rowModel.setTrait("row", rowTrait);
       rowModel.setTrait("key", keyCell);
       rowModel.setTrait("value", valueCell);
@@ -734,17 +1124,13 @@
       tableTrait.colSpacing.setState(swim.Length.px(12));
       tableModel.setTrait("table", tableTrait);
 
-      const keyColModel = new swim.CompoundModel();
       const keyColTrait = new swim.ColTrait();
-      keyColModel.setTrait("col", keyColTrait);
       keyColTrait.layout.setState({key: "key", grow: 1, textColor: swim.Look.mutedColor});
-      tableModel.appendChildModel(keyColModel);
+      tableModel.setTrait("key", keyColTrait);
 
-      const valueColModel = new swim.CompoundModel();
       const valueColTrait = new swim.ColTrait();
-      valueColModel.setTrait("col", valueColTrait);
       valueColTrait.layout.setState({key: "value", grow: 1});
-      tableModel.appendChildModel(valueColModel);
+      tableModel.setTrait("value", valueColTrait);
 
       const downlinkTrait = new CellularStateStatusDownlink(tableModel, entityTrait.uri, STATUS_URI);
       downlinkTrait.driver.setTrait(tableTrait);

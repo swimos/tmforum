@@ -111,9 +111,9 @@
     createRowModel(key) {
       const rowModel = new swim.CompoundModel();
       const rowTrait = new swim.RowTrait();
-      const keyCell = new swim.CellTrait();
+      const keyCell = new swim.TextCellTrait();
       keyCell.content.setState(key);
-      const valueCell = new swim.CellTrait();
+      const valueCell = new swim.TextCellTrait();
       rowModel.setTrait("row", rowTrait);
       rowModel.setTrait("key", keyCell);
       rowModel.setTrait("value", valueCell);
@@ -225,17 +225,13 @@
       tableTrait.colSpacing.setState(swim.Length.px(12));
       tableModel.setTrait("table", tableTrait);
 
-      const keyColModel = new swim.CompoundModel();
       const keyColTrait = new swim.ColTrait();
-      keyColModel.setTrait("col", keyColTrait);
       keyColTrait.layout.setState({key: "key", grow: 1, textColor: swim.Look.mutedColor});
-      tableModel.appendChildModel(keyColModel);
+      tableModel.setTrait("key", keyColTrait);
 
-      const valueColModel = new swim.CompoundModel();
       const valueColTrait = new swim.ColTrait();
-      valueColModel.setTrait("col", valueColTrait);
       valueColTrait.layout.setState({key: "value", grow: 1});
-      tableModel.appendChildModel(valueColModel);
+      tableModel.setTrait("value", valueColTrait);
 
       const downlinkTrait = new TransitVehicleDownlink(this.agencyName, tableModel, entityTrait.uri, VEHICLE_URI);
       downlinkTrait.driver.setTrait(tableTrait);

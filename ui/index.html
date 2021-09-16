@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=0, shrink-to-fit=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="stylesheet" href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css">
+    <link rel="stylesheet" href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css">
     <style>
       html, body {
         -webkit-tap-highlight-color: transparent;
@@ -14,13 +14,13 @@
     </style>
   </head>
   <body swim-theme>
-    <script src="swim-system.min.js"></script>
+    <script src="swim-runtime.min.js"></script>
     <script src="swim-toolkit.min.js"></script>
     <script src="swim-platform.min.js"></script>
     <script src="cellular.js"></script>
     <script src="traffic.js"></script>
     <script src="transit.js"></script>
-    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js"></script>
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js"></script>
     <script>
 
 if (navigator.standalone) {
@@ -50,13 +50,13 @@ swim.PrismManager.insertPlugin(new swim.InventoryPlugin());
 
 const sessionModel = new swim.SessionModel();
 sessionModel.setTrait("status", new swim.StatusTrait());
-const shellComponent = new swim.ShellComponent();
-shellComponent.root.setView(document.body);
-shellComponent.session.setModel(sessionModel);
+const shellController = new swim.ShellController();
+shellController.root.setView(document.body);
+shellController.session.setModel(sessionModel);
 
-shellComponent.addDomain("warp://localhost:9001");
-shellComponent.addDomain("warp://localhost:9002");
-shellComponent.addDomain("warp://localhost:9003");
+shellController.addDomain("warp://localhost:9001");
+shellController.addDomain("warp://localhost:9002");
+shellController.addDomain("warp://localhost:9003");
 
     </script>
   </body>
