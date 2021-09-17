@@ -338,6 +338,96 @@
         numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.alert, throughput])));
       }
 
+      // Scene 6 rigging
+      //if (entityTrait.uri.toString() === "/site/ABAB") {
+      //  statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //  }, 26000);
+      //} else if (entityTrait.uri.toString() === "/site/ABAD") {
+      //  statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //  }, 29000);
+      //} else if (entityTrait.uri.toString() === "/site/ABAA") {
+      //  statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //  }, 35000);
+      //} else if (entityTrait.uri.toString() === "/site/ABAC") {
+      //  statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //    numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, void 0])));
+      //  }, 33000);
+      //}
+
+      // Scene 7 rigging
+      if (entityTrait.uri.toString() === "/site/ABAB") {
+        setTimeout(function () {
+          statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+        }, 58000);
+      } else if (entityTrait.uri.toString() === "/site/ABAD") {
+        setTimeout(function () {
+          statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+        }, 62000);
+      } else if (entityTrait.uri.toString() === "/site/ABAA") {
+        setTimeout(function () {
+          statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+        }, 59000);
+      } else if (entityTrait.uri.toString() === "/site/ABAC") {
+        setTimeout(function () {
+          statusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          sinrStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          rrcStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          throughputStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+          numUEsStatusTrait.setStatusFactor("site", swim.StatusFactor.create("Site", swim.StatusVector.of([swim.Status.warning, 1])));
+        }, 64000);
+      }
+
       if (entityTrait.uri.toString() === "/site/ABAB") {
         this.updateNorthSite(nodeModel);
       } else if (entityTrait.uri.toString() === "/site/ABAD") {
@@ -626,7 +716,7 @@
 
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
       const statusTrait = sectorModel.getTrait(swim.StatusTrait);
-      if (u === 0 && v !== 0 || locationTrait.geographic === null) {
+      if (u === 0 && v !== 0 || locationTrait.geographic === null && window.simEnabled) {
         statusTrait.setStatusFactor("coverage", swim.StatusFactor.create("Coverage", swim.StatusVector.of([swim.Status.warning, 1])));
       } else if (u === 1 && v !== 1) {
         statusTrait.setStatusFactor("coverage", null);
@@ -689,7 +779,7 @@
 
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
       const statusTrait = sectorModel.getTrait(swim.StatusTrait);
-      if (u === 0 && v !== 0 || locationTrait.geographic === null) {
+      if (u === 0 && v !== 0 || locationTrait.geographic === null && window.simEnabled) {
         statusTrait.setStatusFactor("coverage", swim.StatusFactor.create("Coverage", swim.StatusVector.of([swim.Status.warning, 1])));
       } else if (u === 1 && v !== 1) {
         statusTrait.setStatusFactor("coverage", null);
@@ -752,7 +842,7 @@
 
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
       const statusTrait = sectorModel.getTrait(swim.StatusTrait);
-      if (u === 0 && v !== 0 || locationTrait.geographic === null) {
+      if (u === 0 && v !== 0 || locationTrait.geographic === null && window.simEnabled) {
         statusTrait.setStatusFactor("coverage", swim.StatusFactor.create("Coverage", swim.StatusVector.of([swim.Status.warning, 1])));
       } else if (u === 1 && v !== 1) {
         statusTrait.setStatusFactor("coverage", null);
@@ -815,7 +905,7 @@
 
       const locationTrait = sectorModel.getTrait(swim.LocationTrait);
       const statusTrait = sectorModel.getTrait(swim.StatusTrait);
-      if (u === 0 && v !== 0 || locationTrait.geographic === null) {
+      if (u === 0 && v !== 0 || locationTrait.geographic === null && window.simEnabled) {
         statusTrait.setStatusFactor("coverage", swim.StatusFactor.create("Coverage", swim.StatusVector.of([swim.Status.warning, 1])));
       } else if (u === 1 && v !== 1) {
         statusTrait.setStatusFactor("coverage", null);
@@ -905,7 +995,9 @@
 
     onStartConsuming() {
       super.onStartConsuming();
-      this.coverageFrame = requestAnimationFrame(this.animateCoverage.bind(this, performance.now()));
+      if (window.simEnabled) {
+        this.coverageFrame = requestAnimationFrame(this.animateCoverage.bind(this, performance.now()));
+      }
     }
 
     onStopConsuming() {

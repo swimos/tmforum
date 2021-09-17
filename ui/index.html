@@ -58,6 +58,131 @@ shellController.addDomain("warp://localhost:9001");
 shellController.addDomain("warp://localhost:9002");
 shellController.addDomain("warp://localhost:9003");
 
+window.simEnabled = true;
+
+const atlasController = shellController.reflector.controller.getChildController("atlas").mirror.controller;
+const mapController = atlasController.map.controller;
+const mapView = mapController.base.view;
+if (mapView !== null) {
+
+  // Scene 1
+  //mapView.moveTo({
+  //  geoCenter: [-122.11997, 37.42611],
+  //  zoom: 13,
+  //}, false);
+  //setTimeout(function () {
+  //  mapView.moveTo({
+  //    geoCenter: [-122.14397, 37.4298],
+  //    zoom: 13,
+  //  }, swim.Easing.quadInOut.withDuration(15000));
+  //}, 5000);
+
+  // Scene 2
+  //mapView.moveTo({
+  //  geoCenter: [-122.1567, 37.4507],
+  //  zoom: 17,
+  //  heading: 200,
+  //  tilt: 45,
+  //}, false);
+  //setTimeout(function () {
+  //  mapView.moveTo({
+  //    geoCenter: [-122.16265, 37.4363],
+  //    zoom: 15,
+  //    heading: 200,
+  //    tilt: 45,
+  //  }, swim.Easing.quadInOut.withDuration(60000));
+  //}, 10000);
+
+  // Scene 3
+  //mapView.moveTo({
+  //  geoCenter: [-122.15999, 37.43536],
+  //  zoom: 16,
+  //  heading: -15,
+  //  tilt: 60,
+  //}, false);
+  //setTimeout(function () {
+  //  mapView.moveTo({
+  //    geoCenter: [-122.16161, 37.43382],
+  //    zoom: 15,
+  //    heading: 90,
+  //    tilt: 0,
+  //  }, swim.Easing.quadInOut.withDuration(30000));
+  //}, 15000);
+
+  // Scene 4
+  //mapView.moveTo({
+  //  geoCenter: [-122.12759, 37.44733],
+  //  zoom: 15.7,
+  //  heading: -108,
+  //  tilt: 65,
+  //}, false);
+  //setTimeout(function () {
+  //  mapView.moveTo({
+  //    geoCenter: [-122.15197, 37.43961],
+  //    zoom: 17.2,
+  //    heading: -108,
+  //    tilt: 65,
+  //  }, swim.Easing.quadInOut.withDuration(60000));
+  //}, 10000);
+
+  // Scene 5
+  //mapView.moveTo({
+  //  geoCenter: [-122.16446, 37.44355],
+  //  zoom: 17,
+  //  heading: 150,
+  //  tilt: 65,
+  //}, false);
+  //setTimeout(function () {
+  //  mapView.moveTo({
+  //    geoCenter: [-122.16468, 37.44344],
+  //    zoom: 16,
+  //    heading: -141,
+  //    tilt: 0,
+  //  }, swim.Easing.quadInOut.withDuration(15000));
+  //}, 15000);
+
+  // Scene 6
+  //mapView.moveTo({
+  //  geoCenter: [-122.15992, 37.43355],
+  //  zoom: 14,
+  //  heading: 40,
+  //  tilt: 0,
+  //}, false);
+  //setTimeout(function () {
+  //  mapView.moveTo({
+  //    geoCenter: [-122.15992, 37.43355],
+  //    zoom: 15,
+  //    heading: 40,
+  //    tilt: 0,
+  //  }, swim.Easing.quadInOut.withDuration(30000));
+  //}, 15000);
+
+  // Scene 7
+  //mapView.moveTo({
+  //  geoCenter: [-122.15832, 37.43353],
+  //  zoom: 15.4,
+  //  heading: 0,
+  //  tilt: 60,
+  //}, false);
+  //setTimeout(function () {
+  //  mapView.moveTo({
+  //  geoCenter: [-122.13521, 37.42147],
+  //  zoom: 13.5,
+  //  heading: 40,
+  //  tilt: 0,
+  //  }, swim.Easing.quadInOut.withDuration(30000));
+  //  setTimeout(function () {
+  //    mapView.moveTo({
+  //      geoCenter: [-122.15832, 37.43353],
+  //      zoom: 15.4,
+  //      heading: 0,
+  //      tilt: 60,
+  //    }, swim.Easing.quadInOut.withDuration(30000));
+  //  }, 30000);
+  //}, 15000);
+
+}
+
     </script>
   </body>
 </html>

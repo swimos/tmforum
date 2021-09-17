@@ -416,6 +416,64 @@
 
       const infoWidget = this.createInfoWidget(entityTrait);
       entityTrait.appendChildModel(infoWidget, "info");
+
+      // Scene 4 rigging
+      //const intersectionId = +entityTrait.title;
+      //const t0 = 10000;
+      //if (intersectionId === 73) {
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, 1])));
+      //  }, t0 + 2000);
+      //} else if (intersectionId === 71) {
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, 1])));
+      //  }, t0 + 7000);
+      //} else if (intersectionId === 69) {
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, 1])));
+      //  }, t0 + 8000);
+      //} else if (intersectionId === 67) {
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, 1])));
+      //  }, t0 + 10000);
+      //} else if (intersectionId === 66) {
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, 1])));
+      //  }, t0 + 16000);
+      //} else if (intersectionId === 65) {
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, 1])));
+      //  }, t0 + 20000);
+      //} else if (intersectionId === 72) {
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, 1])));
+      //  }, t0 + 24000);
+      //}
+
+      // Scene 5 rigging
+      //const intersectionId = +entityTrait.title;
+      //const t0 = 15000;
+      //if (intersectionId === 33) {
+      //  statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, 1])));
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, void 0])));
+      //  }, t0 + 2000);
+      //} else if (intersectionId === 56) {
+      //  statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, 1])));
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, void 0])));
+      //  }, t0 + 7000);
+      //} else if (intersectionId === 43) {
+      //  statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, 1])));
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, void 0])));
+      //  }, t0 + 8000);
+      //} else if (intersectionId === 97) {
+      //  statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, 1])));
+      //  setTimeout(function () {
+      //    statusTrait.setStatusFactor("congestion", swim.StatusFactor.create("Congestion", swim.StatusVector.of([swim.Status.alert, void 0])));
+      //  }, t0 + 10000);
+      //}
     }
 
     createPhaseWidget(entityTrait) {
