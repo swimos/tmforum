@@ -641,20 +641,23 @@
     downlinkDidSet(value) {
       const redWaiting = value.get("redWaiting").numberValue();
       const redClear = value.get("redClear").numberValue();
+      const redRatio = redWaiting / (redWaiting + redClear);
       const greenFlowing = value.get("greenFlowing").numberValue();
       const greenClear = value.get("greenClear").numberValue();
+      const greenRatio = greenFlowing / (greenFlowing + greenClear);
       const pedWaiting = value.get("pedWaiting").numberValue();
       const pedClear = value.get("pedClear").numberValue();
+      const pedRatio = pedWaiting / (pedWaiting + pedClear);
 
-      this.updatePieSlice(this.redLightsPieModel, "redWaiting", redWaiting, "Waiting");
+      this.updatePieSlice(this.redLightsPieModel, "redWaiting", redWaiting, "Waiting", redRatio);
       this.updatePieSlice(this.redLightsPieModel, "redClear", redClear, "Clear");
-      this.updatePieSlice(this.greenLightsPieModel, "greenFlowing", greenFlowing, "Flowing");
+      this.updatePieSlice(this.greenLightsPieModel, "greenFlowing", greenFlowing, "Flowing", greenRatio);
       this.updatePieSlice(this.greenLightsPieModel, "greenClear", greenClear, "Clear");
-      this.updatePieSlice(this.pedPieModel, "pedWaiting", pedWaiting, "Waiting");
+      this.updatePieSlice(this.pedPieModel, "pedWaiting", pedWaiting, "Waiting", pedRatio);
       this.updatePieSlice(this.pedPieModel, "pedClear", pedClear, "Clear");
     }
 
-    updatePieSlice(pieModel, sliceKey, sliceValue, legend) {
+    updatePieSlice(pieModel, sliceKey, sliceValue, legend, ratio) {
       let sliceModel = pieModel.getChildModel(sliceKey);
       if (sliceModel === null) {
         sliceModel = new swim.CompoundModel();
@@ -666,6 +669,21 @@
       let statusFactor = 0;
       const sliceTrait = sliceModel.getTrait("slice");
       const sliceStatusTrait = sliceModel.getTrait("status");
+      const warningThreshold = 1 / 16;
+      const alertThreshold = 2 / 16;
+      const maxThreshold = 3 / 16;
+      if (ratio === void 0) {
+        sliceStatusTrait.setStatusFactor("waiting", swim.StatusFactor.create("Waiting", swim.StatusVector.of([swim.Status.inactive, 1])));
+      } else if (ratio < warningThreshold) {
+        const normal = ratio / warningThreshold;
+        sliceStatusTrait.setStatusFactor("waiting", swim.StatusFactor.create("Waiting", swim.StatusVector.of([swim.Status.normal, normal], [swim.Status.warning, void 0], [swim.Status.alert, void 0])));
+      } else if (ratio < alertThreshold) {
+        const warning = (ratio - warningThreshold) / (alertThreshold - warningThreshold);
+        sliceStatusTrait.setStatusFactor("waiting", swim.StatusFactor.create("Waiting", swim.StatusVector.of([swim.Status.normal, void 0], [swim.Status.warning, warning], [swim.Status.alert, void 0])));
+      } else {
+        const alert = Math.min((ratio - alertThreshold) / (maxThreshold - alertThreshold), 1);
+        sliceStatusTrait.setStatusFactor("waiting", swim.StatusFactor.create("Waiting", swim.StatusVector.of([swim.Status.normal, void 0], [swim.Status.warning, void 0], [swim.Status.alert, alert])));
+      }
       /*sliceTrait.formatLabel = function (value) {
         return value + "";
       };*/
