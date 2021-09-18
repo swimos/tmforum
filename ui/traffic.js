@@ -715,7 +715,7 @@
       statusTrait.setStatusFactor("operational", swim.StatusFactor.create("Operational", swim.StatusVector.of([swim.Status.normal, 1])));
 
       const locationTrait = new swim.LocationTrait();
-      locationTrait.setZoomRange(-Infinity, MIN_INTERSECTION_ZOOM);
+      locationTrait.setZoomRange(-Infinity, Infinity);
       if (isFinite(lng) && isFinite(lat)) {
         const geographic = swim.GeographicPoint.fromInit({
           geometry: new swim.GeoPoint(lng, lat),
